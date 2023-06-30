@@ -1,8 +1,20 @@
 import puppeteer from 'puppeteer';
+import util from 'node:util';
+util.inspect.defaultOptions.maxArrayLength = null;
+util.inspect.defaultOptions.depth = null;
 
-export async function browser(processor, { headless = false }) {
+function format(value) {
+  if (value instanceof Map) {
+    ret = Array.from(value.entries())
+  } else {
+    ret = value;
+  }
+  console.log(ret);
+}
+
+export async function browser(processor) {
   // Launch the browser
-  const browser = await puppeteer.launch({ headless });
+  const browser = await puppeteer.launch({ headless: false });
 
   // Create a page
   const page = await browser.newPage();
@@ -11,19 +23,26 @@ export async function browser(processor, { headless = false }) {
   processor.addEventListener('change', async () => {
     const result = await page.evaluate((func) => {
       try {
-        return eval(func);
+        const value = eval(func);
+        if (value instanceof Map || value instanceof Set) {
+          return Array.from(value.entries())
+        }
+        else {
+          return value;
+        }
       } catch (Error) {
         console.log(Error);
         return Error.toString();
       }
-    }, processor.func);
+    },
+      processor.func
+    );
+    console.clear();
     console.log(result);
   });
 
   processor.start();
+}
 
-  // Close browser.
-  if (headless !== false) {
-    await browser.close();
-  }
+function replacer(key, value) {
 }

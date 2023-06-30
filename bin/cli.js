@@ -8,25 +8,20 @@ import { browser } from '../src/browser.js';
 const program = new Command();
 program
   .argument('<file>', 'file to execute in the browser.')
-  .option('--headless [boolean]', 'specify running the browser in headless mode.')
-  .option('--watch [boolean]', 'rerun the file on change.');
+  // .option('--headless [boolean]', 'specify running the browser in headless mode.')
+  // .option('--watch [boolean]', 'rerun the file on change.');
 program.parse(process.argv);
 
 const file = program.args.at(0);
 const opts = program.opts();
-const browserOptions = {
-  headless: 'headless' in opts ? 'new' : false
-};
 
 class Processor extends EventTarget {
   constructor() {
     super();
-    if ('watch' in opts) {
-      fs.watchFile(file, {interval: 100}, () => {
-        this.dispatchEvent(new Event('change'));
-      });
-    }
-    browser(this, { ...browserOptions });
+    fs.watchFile(file, {interval: 100}, () => {
+      this.dispatchEvent(new Event('change'));
+    });
+    browser(this);
   }
 
   get func() {
