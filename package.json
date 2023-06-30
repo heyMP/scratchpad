@@ -1,0 +1,15 @@
+{
+  "name": "scratchpad",
+  "main": "bin/cli.js",
+  "type": "module",
+  "bin": {
+    "scratchpad": "bin/cli.js"
+  },
+  "devDependencies": {
+    "commander": "^11.0.0",
+    "puppeteer": "^20.7.4"
+  },
+  "scripts": {
+    "start": "node ./bin/cli.js --"
+  }
+}
