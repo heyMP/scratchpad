@@ -1,37 +1,46 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import { join } from 'node:path';
-import { Command, Option } from 'commander';
-import { browser } from  '../src/browser.js';
+import fsPromises from 'node:fs/promises';
+import { Command } from 'commander';
+import { browser } from '../src/browser.js';
 
 const program = new Command();
 program
   .argument('<file>', 'file to execute in the browser.')
-  .option('--headless [boolean]', 'specify running the browser in headless mode');
+  .option('--headless [boolean]', 'specify running the browser in headless mode.')
+  .option('--watch [boolean]', 'rerun the file on change.');
 program.parse(process.argv);
 
 const file = program.args.at(0);
 const opts = program.opts();
-const headless = 'headless' in opts ? 'new' : false;
+const browserOptions = {
+  headless: 'headless' in opts ? 'new' : false
+};
 
-if (fs.existsSync(file)) {
-  const func = fs.readFileSync(file, 'utf8');
-  browser(func, { headless });
-}
-else {
-  console.error(`${file} file not found.`)
+class Processor extends EventTarget {
+  constructor() {
+    super();
+    if ('watch' in opts) {
+      fs.watchFile(file, {interval: 100}, () => {
+        this.dispatchEvent(new Event('change'));
+      });
+    }
+    browser(this, { ...browserOptions });
+  }
+
+  get func() {
+    if (fs.existsSync(file)) {
+      return fs.readFileSync(file, 'utf8');
+    }
+    else {
+      console.error(`${file} file not found.`)
+    }
+  }
+
+  start() {
+    this.dispatchEvent(new Event('change'));
+  }
 }
 
-// if (process.argv.includes('clean')) {
-//   await builder.clean();
-// } else if (process.argv.includes('build')) {
-//   try {
-//     await builder.build();
-//   } catch(e) {
-//     console.error(e);
-//     process.exit(1);
-//   }
-// } else {
-//   console.log('USAGE: dx-cdn <build|clean>');
-// }
+new Processor();

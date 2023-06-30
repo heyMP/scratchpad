@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 
-export async function browser(func, { headless = false }) {
+export async function browser(processor, { headless = false }) {
   // Launch the browser
   const browser = await puppeteer.launch({ headless });
 
@@ -8,12 +8,20 @@ export async function browser(func, { headless = false }) {
   const page = await browser.newPage();
 
   // Evaluate JavaScript
-  const result = await page.evaluate((func) => {
-    return eval(func);
-  }, func);
+  processor.addEventListener('change', async () => {
+    const result = await page.evaluate((func) => {
+      try {
+        return eval(func);
+      } catch (Error) {
+        console.log(Error);
+        return Error.toString();
+      }
+    }, processor.func);
+    console.log(result);
+  });
 
-  console.log(result);
-  
+  processor.start();
+
   // Close browser.
   if (headless !== false) {
     await browser.close();
