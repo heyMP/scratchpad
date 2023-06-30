@@ -1,5 +1,5 @@
 {
-  "name": "scratchpad",
+  "name": "@heymp/scratchpad",
   "main": "bin/cli.js",
   "type": "module",
   "bin": {
