@@ -14,10 +14,13 @@ function format(value) {
 
 export async function browser(processor) {
   // Launch the browser
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: false, devtools: true });
 
   // Create a page
   const page = await browser.newPage();
+  if (processor.url) {
+    await page.goto(processor.url);
+  }
 
   // Evaluate JavaScript
   processor.addEventListener('change', async () => {
