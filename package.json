@@ -1,10 +1,10 @@
 {
   "name": "@heymp/scratchpad",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "bin/cli.js",
   "type": "module",
   "bin": {
-    "scratchpad": "bin/cli.js"
+    "@heymp/scratchpad": "bin/cli.js"
   },
   "files": [
     "bin/cli.js",
