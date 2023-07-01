@@ -25,19 +25,31 @@ export async function browser(processor) {
   if (processor.url) {
     await page.goto(processor.url);
   }
-  await page.exposeFunction('nodelog', nodelog);
+
+  await page.exposeFunction('clear', (value) => {
+    console.clear();
+    page.evaluate(() => {
+      console.clear()
+    });
+  });
+
+  await page.exposeFunction('nodelog', (value) => {
+    console.log(value);
+  });
 
   // Evaluate JavaScript
   processor.addEventListener('change', async () => {
     page.evaluate(async (func) => {
       function log(value) {
-        console.log(value);
         if (value instanceof Map || value instanceof Set) {
           nodelog([...value.entries()]);
         }
         else {
           nodelog(value);
         }
+        setTimeout(() => {
+          console.log(value);
+        }, 100);
       }
 
       eval(`

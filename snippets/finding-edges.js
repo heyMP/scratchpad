@@ -7,4 +7,5 @@ for (const [u, v] of edges) {
   g.get(u).push(v);
 }
 
+clear();
 log(g)
