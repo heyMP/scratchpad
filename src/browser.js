@@ -12,40 +12,49 @@ function format(value) {
   console.log(ret);
 }
 
+function nodelog(value) {
+  console.log(value);
+}
+
 export async function browser(processor) {
   // Launch the browser
-  const browser = await puppeteer.launch({ headless: false, devtools: true });
+  const browser = await puppeteer.launch({ headless: processor.headless, devtools: true });
 
   // Create a page
   const page = await browser.newPage();
   if (processor.url) {
     await page.goto(processor.url);
   }
+  await page.exposeFunction('nodelog', nodelog);
 
   // Evaluate JavaScript
   processor.addEventListener('change', async () => {
-    const result = await page.evaluate((func) => {
-      try {
-        const value = eval(func);
+    page.evaluate(async (func) => {
+      function log(value) {
+        console.log(value);
         if (value instanceof Map || value instanceof Set) {
-          return Array.from(value.entries())
+          nodelog([...value.entries()]);
         }
         else {
-          return value;
+          nodelog(value);
         }
-      } catch (Error) {
-        console.log(Error);
-        return Error.toString();
       }
+
+      eval(`
+        (async () => { 
+          try {
+            ${func}
+          } catch (Error) {
+            nodelog(Error.toString());
+            throw Error;
+          }
+        })()
+      `);
     },
       processor.func
     );
-    console.clear();
-    console.log(result);
   });
 
   processor.start();
 }
 
-function replacer(key, value) {
-}

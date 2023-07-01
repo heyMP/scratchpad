@@ -15,10 +15,9 @@ const pkg = JSON.parse(fs.readFileSync(join(__dirname, '../package.json'), 'utf8
 const program = new Command();
 program
   .argument('<file>', 'file to execute in the browser.')
+  .option('--headless [boolean]', 'specify running the browser in headless mode.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .version(pkg.version)
-  // .option('--headless [boolean]', 'specify running the browser in headless mode.')
-  // .option('--watch [boolean]', 'rerun the file on change.');
 program.parse(process.argv);
 
 const file = program.args.at(0);
@@ -28,6 +27,8 @@ class Processor extends EventTarget {
   constructor() {
     super();
     this.url = opts['url'];
+    this.headless = 'headless' in opts ? 'new' : false
+
     fs.watchFile(file, {interval: 100}, () => {
       this.dispatchEvent(new Event('change'));
     });
