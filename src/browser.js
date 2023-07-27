@@ -33,13 +33,8 @@ export async function browser(processor) {
     });
   });
 
-  await page.exposeFunction('nodelog', (value) => {
-    if (Array.isArray(value)) {
-      console.log(...value);
-    }
-    else {
-      console.log(value);
-    }
+  await page.exposeFunction('nodelog', (...value) => {
+    console.log(...value);
   });
 
   // Evaluate JavaScript
@@ -50,12 +45,24 @@ export async function browser(processor) {
           console.log(...value);
         }, 100);
         nodelog(
-          value.flatMap(i => {
-            if (i instanceof Set) {
-              return ['Set:', [...i.values()]];
+          ...value.flatMap(i => {
+            const protoName = Object.prototype.toString.call(i);
+            if (protoName === '[object Array]') {
+              return [i];
             }
-            else if (i instanceof Map) {
-              return ['Map:', [...i.entries()]];
+            if (protoName === '[object Set]') {
+              return [protoName, [...i.values()]];
+            }
+            else if (protoName === '[object Map]') {
+              return [protoName, [...i.entries()]];
+            }
+            else if (protoName === '[object Generator]') {
+              return [protoName, i.next()];
+            }
+            else if (typeof i[Symbol.iterator] === 'function') {
+              if (!['[object String]', '[object Array]'].includes(protoName)) {
+                return [protoName, [...i]]
+              }
             }
             return i;
           })
