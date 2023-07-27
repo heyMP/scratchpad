@@ -26,7 +26,7 @@ export async function browser(processor) {
     await page.goto(processor.url);
   }
 
-  await page.exposeFunction('clear', (value) => {
+  await page.exposeFunction('clear', () => {
     console.clear();
     page.evaluate(() => {
       console.clear()
@@ -34,34 +34,48 @@ export async function browser(processor) {
   });
 
   await page.exposeFunction('nodelog', (value) => {
-    console.log(value);
+    if (Array.isArray(value)) {
+      console.log(...value);
+    }
+    else {
+      console.log(value);
+    }
   });
 
   // Evaluate JavaScript
   processor.addEventListener('change', async () => {
     page.evaluate(async (func) => {
-      function log(value) {
-        if (value instanceof Map || value instanceof Set) {
-          nodelog([...value.entries()]);
-        }
-        else {
-          nodelog(value);
-        }
+      function log(...value) {
         setTimeout(() => {
-          console.log(value);
+          console.log(...value);
         }, 100);
+        nodelog(
+          value.flatMap(i => {
+            if (i instanceof Set) {
+              return ['Set:', [...i.values()]];
+            }
+            else if (i instanceof Map) {
+              return ['Map:', [...i.entries()]];
+            }
+            return i;
+          })
+        );
       }
 
-      eval(`
-        (async () => { 
-          try {
-            ${func}
-          } catch (Error) {
-            nodelog(Error.toString());
-            throw Error;
-          }
-        })()
-      `);
+      try {
+        eval(`
+          (async () => {
+            try {
+              ${func}
+            } catch (Error) {
+              nodelog(Error.toString());
+              throw Error;
+            }
+          })()
+        `);
+      } catch (Error) {
+        log(Error.toString())
+      }
     },
       processor.func
     );
