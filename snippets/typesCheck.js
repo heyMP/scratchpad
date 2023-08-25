@@ -18,3 +18,5 @@ log(map);
 log(set.values());
 log([...set.values()]);
 log([...set.entries()]);
+log(new Promise(res => res()));
+log(function hello() { return 'world' });

@@ -47,24 +47,34 @@ export async function browser(processor) {
         nodelog(
           ...value.flatMap(i => {
             const protoName = Object.prototype.toString.call(i);
+            const protoNamePrettyPrint = protoName.replace('object ', '').replace(/\[|\]/g, '') + ':';
             if (protoName === '[object Array]') {
-              return [i];
+              return [protoNamePrettyPrint, i];
             }
             if (protoName === '[object Set]') {
-              return [protoName, [...i.values()]];
+              return [protoNamePrettyPrint, [...i.values()]];
             }
             else if (protoName === '[object Map]') {
-              return [protoName, [...i.entries()]];
+              return [protoNamePrettyPrint, [...i.entries()]];
             }
             else if (protoName === '[object Generator]') {
-              return [protoName, i.next()];
+              return [protoNamePrettyPrint, i.next()];
             }
             else if (typeof i[Symbol.iterator] === 'function') {
               if (!['[object String]', '[object Array]'].includes(protoName)) {
-                return [protoName, [...i]]
+                return [protoNamePrettyPrint, [...i]]
               }
             }
-            return i;
+            else if (protoName === '[object Function]') {
+              return ['ƒ:', i.toString()]
+            }
+            /**
+             * @todo: Promises should pretty print much nicer, like chromium.
+             */
+            else if (protoName === '[object Promise]') {
+              return [protoNamePrettyPrint, i];
+            }
+            return [protoNamePrettyPrint, i];
           })
         );
       }
