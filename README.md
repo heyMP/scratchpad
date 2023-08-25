@@ -1,17 +1,17 @@
-# Scratchpad
+# @heymp/scratchpad
 
 A super fast way of debugging javascript snippets in a Puppeteer browser!
 
 ## Usage
 
 ```bash
-npx scratchpad@latest ./my-test-file.js
+npx @heymp/scratchpad@latest ./my-test-file.js
 ```
 
 ## Options
 
 ```bash
-Usage: scratchpad@latest [options] <file>
+Usage: @heymp/scratchpad@latest [options] <file>
 
 Arguments:
   file                  file to execute in the browser.
