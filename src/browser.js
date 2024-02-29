@@ -22,6 +22,7 @@ export async function browser(processor) {
 
   // Create a page
   const page = await browser.newPage();
+  await page.setViewport({ width: 1300, height: 1024 });
   if (processor.url) {
     await page.goto(processor.url);
   }
@@ -37,8 +38,7 @@ export async function browser(processor) {
     console.log(...value);
   });
 
-  // Evaluate JavaScript
-  processor.addEventListener('change', async () => {
+  async function execute() {
     page.evaluate(async (func) => {
       function log(...value) {
         setTimeout(() => {
@@ -96,8 +96,10 @@ export async function browser(processor) {
     },
       processor.func
     );
-  });
+  }
 
+  // Evaluate JavaScript
+  processor.addEventListener('change', execute);
   processor.start();
 }
 
