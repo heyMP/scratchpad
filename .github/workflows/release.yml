@@ -18,7 +18,6 @@ jobs:
           cache: npm
 
       - run: npm ci --prefer-offline
-      - run: npm run build
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
