@@ -11,7 +11,7 @@ npx @heymp/scratchpad@latest ./my-test-file.js
 ## Options
 
 ```bash
-Usage: @heymp/scratchpad@latest [options] <file>
+Usage: @heymp/scratchpad@latest <file> [options] 
 
 Arguments:
   file                  file to execute in the browser.
