@@ -4,5 +4,7 @@
   "initialVersions": {
     "@heymp/scratchpad": "0.0.10"
   },
-  "changesets": []
+  "changesets": [
+    "many-spies-fix"
+  ]
 }
