@@ -11,7 +11,7 @@ npx @heymp/scratchpad@latest ./my-test-file.js
 ## Options
 
 ```bash
-Usage: @heymp/scratchpad@latest [options] <file>
+Usage: @heymp/scratchpad@latest <file> [options] 
 
 Arguments:
   file                  file to execute in the browser.
@@ -59,6 +59,30 @@ log([...set.values()]);
 log([...set.entries()]);
 log(new Promise(res => res()));
 log(function hello() { return 'world' });
+```
+
+## Typescript
+
+Scratchpad also has out of the box support for Typescript. Any file that ends with `.ts` will
+be first transpiled by the `tsc -w` command. While you can execute typescript files using the
+`npx @heymp/scratchpad` command, it is reccommended to install the package locally so you can
+import the library typings.
+
+Example:
+
+```bash
+npm install @heymp/scratchpad
+```
+
+Recommended tsconfig.json settings.
+
+```json
+{
+  "target": "esnext",
+  "compilerOptions": {
+    "types": ["./node_modules/@heymp/scratchpad/types.d.ts"]
+  }
+}
 ```
 
 ## Development
