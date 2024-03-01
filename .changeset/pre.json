@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@heymp/scratchpad": "0.0.10"
+  },
+  "changesets": []
+}
