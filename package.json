@@ -17,9 +17,11 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "start": "node ./bin/cli.js --"
+    "start": "node ./bin/cli.js --",
+    "version": "echo [Run the following command]: npx @changesets/cli version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.1",
     "@types/node": "^20.11.24"
   }
 }
