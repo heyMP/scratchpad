@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import fsPromises from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
@@ -28,20 +28,51 @@ class Processor extends EventTarget {
     super();
     this.url = opts['url'];
     this.headless = 'headless' in opts ? 'new' : false
+    this._func = '';
 
-    fs.watchFile(file, {interval: 100}, () => {
-      this.dispatchEvent(new Event('change'));
-    });
+    if (file.endsWith('.ts')) {
+      this.startTsWatcher();
+    }
+    else {
+      this.startFileWatcher();
+    }
+
     browser(this);
   }
 
   get func() {
-    if (fs.existsSync(file)) {
-      return fs.readFileSync(file, 'utf8');
-    }
-    else {
-      console.error(`${file} file not found.`)
-    }
+    return this._func;
+  }
+
+  set func(func) {
+    this._func = func;
+    this.dispatchEvent(new Event('change'));
+  }
+
+  startTsWatcher() {
+    // start a watcher
+    const tscCommand = spawn('npx', ['tsc', file, '-w', '--outFile', '/dev/stdout'], { cwd: process.cwd() });
+    tscCommand.stdout.on('data', data => {
+      const output = data.toString();
+      if (output.includes('Starting') || output.includes('Watching for file changes')) {
+        return;
+      };
+      this.func = output;
+    })
+    tscCommand.stderr.on('data', data => {
+      console.error('error', data.toString());
+    });
+  }
+
+  startFileWatcher() {
+    fs.watchFile(file, { interval: 100 }, () => {
+      if (fs.existsSync(file)) {
+        this.func = fs.readFileSync(file, 'utf8');
+      }
+      else {
+        console.error(`${file} file not found.`)
+      }
+    });
   }
 
   start() {
