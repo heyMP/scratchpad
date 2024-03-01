@@ -1,3 +1,5 @@
+/// <reference path="../types.d.ts" />
+
 function containsAllValues(arr: number[]): boolean {
   const answer = Array.from({ length: arr.length }, (_: any, i: number) => i).join('');
   const values = arr.sort().join('');

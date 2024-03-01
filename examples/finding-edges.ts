@@ -1,3 +1,5 @@
+/// <reference path="../types.d.ts" />
+
 const edges = [[1, 10], [10, 30], [30, 40], [40, 100], [30, -50], [-50, 40]];
 
 const g: Map<any, any> = new Map()
