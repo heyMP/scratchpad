@@ -2,6 +2,8 @@
 
 A super fast way of debugging javascript snippets in a Puppeteer browser!
 
+https://github.com/heyMP/scratchpad/assets/3428964/2a58d587-510d-418f-bd8a-99958e1d8277
+
 ## Usage
 
 ```bash
