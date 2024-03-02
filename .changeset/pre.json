@@ -5,6 +5,7 @@
     "@heymp/scratchpad": "0.0.10"
   },
   "changesets": [
+    "chilled-baboons-battle",
     "many-spies-fix"
   ]
 }
