@@ -4,7 +4,7 @@
   "main": "bin/cli.js",
   "type": "module",
   "bin": {
-    "@heymp/scratchpad": "bin/cli.js"
+    "scratchpad": "bin/cli.js"
   },
   "files": [
     "bin/cli.js",
