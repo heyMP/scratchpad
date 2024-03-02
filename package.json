@@ -17,7 +17,8 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "start": "node ./bin/cli.js --"
+    "start": "node ./bin/cli.js --",
+    "publish": "changesets publish",
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1"
