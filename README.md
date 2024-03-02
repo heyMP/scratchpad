@@ -93,6 +93,7 @@ Recommended tsconfig.json settings.
 ```bash
 npm install
 ```
+test
 
 ```bash
 ./bin/cli.js -h
