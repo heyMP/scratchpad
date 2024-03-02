@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "node ./bin/cli.js --",
-    "publish": "npx changesets publish"
+    "release": "changesets publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1"
