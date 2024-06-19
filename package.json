@@ -13,8 +13,7 @@
   ],
   "dependencies": {
     "commander": "^11.0.0",
-    "puppeteer": "^20.7.4",
-    "typescript": "^5.3.3"
+    "playwright": "^1.44.1"
   },
   "scripts": {
     "start": "node ./bin/cli.js --",
