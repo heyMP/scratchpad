@@ -27,7 +27,7 @@ class Processor extends EventTarget {
   constructor() {
     super();
     this.url = opts['url'];
-    this.headless = 'headless' in opts ? 'new' : false
+    this.headless = opts['headless'];
     this._func = '';
 
     if (file.endsWith('.ts')) {
@@ -51,7 +51,14 @@ class Processor extends EventTarget {
 
   startTsWatcher() {
     // start a watcher
-    const tscCommand = spawn('npx', ['tsc', file, '-w', '--outFile', '/dev/stdout'], { cwd: process.cwd() });
+    const tscCommand = spawn('npx', [
+      'tsc', file,
+      '-w',
+      '--outFile',
+      '/dev/stdout',
+      '--target',
+      'esnext',
+    ], { cwd: process.cwd() });
     tscCommand.stdout.on('data', data => {
       const output = data.toString();
       if (output.includes('Starting') || output.includes('Watching for file changes')) {

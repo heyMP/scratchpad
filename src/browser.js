@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import playwright from 'playwright';
 import util from 'node:util';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -18,11 +18,14 @@ function nodelog(value) {
 
 export async function browser(processor) {
   // Launch the browser
-  const browser = await puppeteer.launch({ headless: processor.headless, devtools: true });
+  const browser = await playwright['chromium'].launch({
+    headless: processor.headless,
+    devtools: true
+  });
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
   // Create a page
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1300, height: 1024 });
   if (processor.url) {
     await page.goto(processor.url);
   }
