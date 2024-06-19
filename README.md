@@ -8,7 +8,7 @@ https://github.com/heyMP/scratchpad/assets/3428964/2a58d587-510d-418f-bd8a-99958
 ## Usage
 
 ```bash
-npx @heymp/scratchpad@latest ./my-test-file.js
+npx @heymp/scratchpad@next ./my-test-file.js
 ```
 
 ## Options
@@ -74,10 +74,14 @@ import the library typings.
 Example:
 
 ```bash
-npm install @heymp/scratchpad
+npm install @heymp/scratchpad typescript
 ```
 
-Recommended tsconfig.json settings.
+Recommended `tsconfig.json` settings. NOTE: your local `tsconfig.json` file is only used to
+for your local Typescript LSP. The `tsc` commnand built in to the Scratchpad ignores
+your local `tsconfig.json` file. If you need to add custom rules to the compiled output
+that is executed in the chromium browser then you will need hand the ts -> js compile step
+yourself.
 
 ```json
 {
@@ -86,6 +90,13 @@ Recommended tsconfig.json settings.
     "types": ["./node_modules/@heymp/scratchpad/types.d.ts"]
   }
 }
+```
+
+An alternatice to the `tsconfig.json` file is to use the following triple-slash comment
+in your `.ts` files:
+
+```ts
+/// <reference path="./node_modules/@heymp/scratchpad/types.d.ts" />
 ```
 
 ## Development
