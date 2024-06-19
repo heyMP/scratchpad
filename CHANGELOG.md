@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.3
+
+### Major Changes
+
+- f5c9bc4: Migrate to Playwright
+
 ## 1.0.0-next.2
 
 ### Patch Changes
