@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import { spawn } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { browser } from '../src/browser.js';
+import * as esbuild from 'esbuild';
 
 // Get pkg info
 const __filename = fileURLToPath(import.meta.url);
@@ -29,14 +29,7 @@ class Processor extends EventTarget {
     this.url = opts['url'];
     this.headless = opts['headless'];
     this._func = '';
-
-    if (file.endsWith('.ts')) {
-      this.startTsWatcher();
-    }
-    else {
-      this.startFileWatcher();
-    }
-
+    this.watcher();
     browser(this);
   }
 
@@ -49,37 +42,35 @@ class Processor extends EventTarget {
     this.dispatchEvent(new Event('change'));
   }
 
-  startTsWatcher() {
-    // start a watcher
-    const tscCommand = spawn('npx', [
-      'tsc', file,
-      '-w',
-      '--outFile',
-      '/dev/stdout',
-      '--target',
-      'esnext',
-    ], { cwd: process.cwd() });
-    tscCommand.stdout.on('data', data => {
-      const output = data.toString();
-      if (output.includes('Starting') || output.includes('Watching for file changes')) {
-        return;
-      };
-      this.func = output;
-    })
-    tscCommand.stderr.on('data', data => {
-      console.error('error', data.toString());
+  watcher() {
+    if (!fs.existsSync(file)) {
+      throw new Error(`${file} file not found.`);
+    }
+    // execute it immediately then start watcher
+    this.build();
+    fs.watchFile(file, { interval: 100 }, () => {
+      this.build();
     });
   }
 
-  startFileWatcher() {
-    fs.watchFile(file, { interval: 100 }, () => {
-      if (fs.existsSync(file)) {
-        this.func = fs.readFileSync(file, 'utf8');
+  async build() {
+    console.log('build')
+    try {
+      if (file.endsWith('.ts')) {
+        const { outputFiles: [stdout]} = await esbuild.build({
+          entryPoints: [file],
+          format: 'esm',
+          bundle: true,
+          write: false
+        });
+        this.func = new TextDecoder().decode(stdout.contents);
       }
       else {
-        console.error(`${file} file not found.`)
+        this.func = fs.readFileSync(file, 'utf8');
       }
-    });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   start() {
