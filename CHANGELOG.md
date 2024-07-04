@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.4
+
+### Minor Changes
+
+- 7b6410e: Migrate from tsc to esbuild for TS compilation
+
 ## 1.0.0-next.3
 
 ### Major Changes
