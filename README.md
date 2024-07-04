@@ -67,14 +67,14 @@ log(function hello() { return 'world' });
 ## Typescript
 
 Scratchpad also has out of the box support for Typescript. Any file that ends with `.ts` will
-be first transpiled by the `tsc -w` command. While you can execute typescript files using the
+be first transpiled by `esbuild` command. While you can execute typescript files using the
 `npx @heymp/scratchpad` command, it is reccommended to install the package locally so you can
 import the library typings.
 
 Example:
 
 ```bash
-npm install @heymp/scratchpad typescript
+npm install @heymp/scratchpad
 ```
 
 Recommended `tsconfig.json` settings. NOTE: your local `tsconfig.json` file is only used to
@@ -104,7 +104,6 @@ in your `.ts` files:
 ```bash
 npm install
 ```
-test
 
 ```bash
 ./bin/cli.js -h
