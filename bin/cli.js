@@ -16,6 +16,7 @@ const program = new Command();
 program
   .argument('<file>', 'file to execute in the browser.')
   .option('--headless [boolean]', 'specify running the browser in headless mode.')
+  .option('--devtools [boolean]', 'open browser devtools automatically.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .version(pkg.version)
 program.parse(process.argv);
@@ -28,6 +29,7 @@ class Processor extends EventTarget {
     super();
     this.url = opts['url'];
     this.headless = opts['headless'];
+    this.devtools = opts['devtools'];
     this._func = '';
     this.watcher();
     browser(this);
@@ -54,7 +56,6 @@ class Processor extends EventTarget {
   }
 
   async build() {
-    console.log('build')
     try {
       if (file.endsWith('.ts')) {
         const { outputFiles: [stdout]} = await esbuild.build({

@@ -19,8 +19,8 @@ function nodelog(value) {
 export async function browser(processor) {
   // Launch the browser
   const browser = await playwright['chromium'].launch({
-    headless: processor.headless,
-    devtools: true
+    headless: !!processor.headless,
+    devtools: !!processor.devtools
   });
   const context = await browser.newContext();
   const page = await context.newPage();
