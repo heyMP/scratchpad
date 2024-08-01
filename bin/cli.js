@@ -5,6 +5,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { browser } from '../src/browser.js';
+import { getConfig } from '../src/config.js';
 import * as esbuild from 'esbuild';
 
 // Get pkg info
@@ -22,7 +23,8 @@ program
 program.parse(process.argv);
 
 const file = program.args.at(0);
-const opts = program.opts();
+const config = await getConfig();
+const opts = { ...config, ...program.opts()};
 
 class Processor extends EventTarget {
   constructor() {
