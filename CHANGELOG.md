@@ -1,5 +1,12 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.5
+
+### Minor Changes
+
+- db0f2af: Open devtools automatically with cli flag. Use the `--devtools` flag
+  to enable the devtools in the browser.
+
 ## 1.0.0-next.4
 
 ### Minor Changes
