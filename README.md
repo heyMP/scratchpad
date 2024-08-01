@@ -14,14 +14,16 @@ npx @heymp/scratchpad@next ./my-test-file.js
 ## Options
 
 ```bash
-Usage: @heymp/scratchpad@next <file> [options] 
+Usage: @heymp/scratchpad@next <file> [options]
 
 Arguments:
   file                  file to execute in the browser.
 
 Options:
   --headless [boolean]  specify running the browser in headless mode.
-  --url [string]        specify a specific url to execute the code in.
+  --devtools [boolean]  open browser devtools automatically.
+  --url [string]        specify a specific url to execute the code
+                        in.
   -V, --version         output the version number
   -h, --help            display help for command
 ```
@@ -97,6 +99,18 @@ in your `.ts` files:
 
 ```ts
 /// <reference path="./node_modules/@heymp/scratchpad/types.d.ts" />
+```
+
+## Config
+
+An alternative to using the CLI flags, you can create `scratchpad.config.js`.
+
+```js
+export default ({
+  devtools: true,
+  headless: false,
+  url: 'https://www.google.com'
+});
 ```
 
 ## Development
