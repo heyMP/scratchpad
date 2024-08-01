@@ -13,4 +13,4 @@ export default ({
 });
 ```
 
-NOTE: CLI options will take precidence over config file options.
+NOTE: CLI flags will take precidence over config file options.
