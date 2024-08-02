@@ -9,7 +9,6 @@
   "files": [
     "bin/cli.js",
     "src/**",
-    "config.d.ts",
     "types.d.ts"
   ],
   "dependencies": {
