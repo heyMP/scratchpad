@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
-import { browser } from '../src/browser.js';
-import { getConfig } from '../src/config.js';
+import { browser } from './browser.js';
+import { getConfig } from './config.js';
 import * as esbuild from 'esbuild';
 
 // Get pkg info

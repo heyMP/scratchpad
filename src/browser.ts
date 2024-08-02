@@ -1,6 +1,6 @@
 import playwright from 'playwright';
 import util from 'node:util';
-import type { Processor } from '../bin/cli.js';
+import type { Processor } from './cli.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
