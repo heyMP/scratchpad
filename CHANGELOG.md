@@ -1,5 +1,42 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.7
+
+### Minor Changes
+
+- c31a8f9: Expose Playwright runtime context to scratchpad.config.js [#40](https://github.com/heyMP/scratchpad/issues/40)
+
+  `scratchpad.config.js`
+
+  ```js
+  export default /** @type {import('@heymp/scratchpad/config').Config} */ ({
+    devtools: true,
+    playwright: async (args) => {
+      const { context, page } = args;
+      // block esmodule shims
+      await context.route(/es-module-shims\.js/, async (route) => {
+        await route.abort();
+      });
+      await page.goto("https://ux.redhat.com");
+    },
+  });
+  ```
+
+- f6fb1f2: Add option for writing the js output to a file based on the compiled
+  ts target. Use `--ts-write` as a boolean flag in the cli.
+
+### Patch Changes
+
+- c31a8f9: Add typings for scratchpad.config.js [#37](https://github.com/heyMP/scratchpad/issues/37)
+
+  ```js
+  export default /** @type {import('@heymp/scratchpad/config').Config} */ ({
+    devtools: true,
+    headless: true,
+    url: "https://google.com",
+  });
+  ```
+
 ## 1.0.0-next.6
 
 ### Minor Changes
