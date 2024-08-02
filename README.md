@@ -22,6 +22,7 @@ Arguments:
 Options:
   --headless [boolean]  specify running the browser in headless mode.
   --devtools [boolean]  open browser devtools automatically.
+  --ts-write [boolean]  write the js output of the target ts file.
   --url [string]        specify a specific url to execute the code
                         in.
   -V, --version         output the version number
@@ -110,6 +111,7 @@ export default ({
   devtools: true,
   headless: false,
   url: 'https://www.google.com'
+  tsWrite: false,
 });
 ```
 

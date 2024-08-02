@@ -18,6 +18,7 @@ program
   .argument('<file>', 'file to execute in the browser.')
   .option('--headless [boolean]', 'specify running the browser in headless mode.')
   .option('--devtools [boolean]', 'open browser devtools automatically.')
+  .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .version(pkg.version)
 program.parse(process.argv);
@@ -32,6 +33,7 @@ class Processor extends EventTarget {
     this.url = opts['url'];
     this.headless = opts['headless'];
     this.devtools = opts['devtools'];
+    this.tsWrite = opts['tsWrite'];
     this._func = '';
     this.watcher();
     browser(this);
@@ -64,9 +66,12 @@ class Processor extends EventTarget {
           entryPoints: [file],
           format: 'esm',
           bundle: true,
-          write: false
+          write: false,
         });
         this.func = new TextDecoder().decode(stdout.contents);
+        if (this.tsWrite) {
+          fs.writeFile(join(process.cwd(), file.replace(/\.ts$/g, '.js')), this.func, 'utf8', () => {});
+        }
       }
       else {
         this.func = fs.readFileSync(file, 'utf8');
