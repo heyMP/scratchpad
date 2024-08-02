@@ -1,9 +1,9 @@
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
-const exists = (path) => stat(path).then(() => true, () => false);
+const exists = (path:string) => stat(path).then(() => true, () => false);
 
-async function importConfig(rootDir) {
+async function importConfig(rootDir:string) {
   const path = join(rootDir, './scratchpad.config.js');
   if (await exists(path)) {
     return import(path)

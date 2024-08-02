@@ -27,15 +27,16 @@ const file = program.args.at(0);
 const config = await getConfig();
 const opts = { ...config, ...program.opts()};
 
-class Processor extends EventTarget {
+export class Processor extends EventTarget {
+  url = opts['url'];
+  headless = opts['headless'];
+  devtools = opts['devtools'];
+  tsWrite = opts['tsWrite'];
+  playwrightConfig = opts['playwright'];
+  _func = '';
+
   constructor() {
     super();
-    this.url = opts['url'];
-    this.headless = opts['headless'];
-    this.devtools = opts['devtools'];
-    this.tsWrite = opts['tsWrite'];
-    this.playwrightConfig = opts['playwright'];
-    this._func = '';
     this.watcher();
     browser(this);
   }
@@ -50,18 +51,24 @@ class Processor extends EventTarget {
   }
 
   watcher() {
+    if (!file) {
+      throw new Error(`${file} file not found.`);
+    }
     if (!fs.existsSync(file)) {
       throw new Error(`${file} file not found.`);
     }
     // execute it immediately then start watcher
     this.build();
-    fs.watchFile(file, { interval: 100 }, () => {
+    fs.watchFile(join(file), { interval: 100 }, () => {
       this.build();
     });
   }
 
   async build() {
     try {
+      if (!file) {
+        throw new Error(`${file} file not found.`);
+      }
       if (file.endsWith('.ts')) {
         const { outputFiles: [stdout]} = await esbuild.build({
           entryPoints: [file],
