@@ -34,6 +34,7 @@ class Processor extends EventTarget {
     this.headless = opts['headless'];
     this.devtools = opts['devtools'];
     this.tsWrite = opts['tsWrite'];
+    this.playwrightConfig = opts['playwright'];
     this._func = '';
     this.watcher();
     browser(this);

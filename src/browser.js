@@ -3,15 +3,6 @@ import util from 'node:util';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
-function format(value) {
-  if (value instanceof Map) {
-    ret = Array.from(value.entries())
-  } else {
-    ret = value;
-  }
-  console.log(ret);
-}
-
 function nodelog(value) {
   console.log(value);
 }
@@ -24,6 +15,11 @@ export async function browser(processor) {
   });
   const context = await browser.newContext();
   const page = await context.newPage();
+
+  // Allow playwright config override
+  if (processor.playwrightConfig && typeof processor.playwrightConfig === 'function') {
+    await processor.playwrightConfig({ browser, context, page });
+  }
 
   // Create a page
   if (processor.url) {
