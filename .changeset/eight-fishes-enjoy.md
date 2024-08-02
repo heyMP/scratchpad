@@ -2,7 +2,7 @@
 "@heymp/scratchpad": minor
 ---
 
-Expose Playwright runtime context to scratchpad.config.js
+Expose Playwright runtime context to scratchpad.config.js [#40](https://github.com/heyMP/scratchpad/issues/40)
 
 `scratchpad.config.js`
 ```js
