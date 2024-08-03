@@ -5,6 +5,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from '@commander-js/extra-typings';
 import { runCommand } from './runCommand.js';
+import { generateCommand } from './generateCommand.js';
 
 // Get pkg info
 const __filename = fileURLToPath(import.meta.url);
@@ -16,4 +17,5 @@ program
   .description(pkg.description)
   .version(pkg.version);
 program.addCommand(runCommand);
+program.addCommand(generateCommand);
 program.parse(process.argv);
