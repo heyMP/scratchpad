@@ -8,24 +8,24 @@ https://github.com/heyMP/scratchpad/assets/3428964/2a58d587-510d-418f-bd8a-99958
 ## Usage
 
 ```bash
-npx @heymp/scratchpad@next ./my-test-file.js
+npx @heymp/scratchpad@next run ./my-test-file.js
 ```
 
-## Options
+## Commands
 
 ```bash
-Usage: @heymp/scratchpad@next <file> [options]
+Usage: @heymp/scratchpad@next run <file> [options]
 
-Arguments:
-  file                  file to execute in the browser.
+Run TS/JS snippets in a locally
 
 Options:
-  --headless [boolean]  specify running the browser in headless mode.
-  --devtools [boolean]  open browser devtools automatically.
-  --ts-write [boolean]  write the js output of the target ts file.
-  --url [string]        specify a specific url to execute the code in.
   -V, --version         output the version number
   -h, --help            display help for command
+
+Commands:
+  run [options] <file>  Execute a file in a browser.
+  generate              Generate files from templates.
+  help [command]        display help for command
 ```
 
 
