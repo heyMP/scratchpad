@@ -1,13 +1,14 @@
 import playwright from 'playwright';
 import util from 'node:util';
+import type { Processor } from './cli.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
-function nodelog(value) {
+function nodelog(value:any) {
   console.log(value);
 }
 
-export async function browser(processor) {
+export async function browser(processor: Processor) {
   // Launch the browser
   const browser = await playwright['chromium'].launch({
     headless: !!processor.headless,
@@ -33,18 +34,19 @@ export async function browser(processor) {
     });
   });
 
-  await page.exposeFunction('nodelog', (...value) => {
+  await page.exposeFunction('nodelog', (...value: any) => {
     console.log(...value);
   });
 
   async function execute() {
     page.evaluate(async (func) => {
-      function log(...value) {
+      function log(...value: any[]) {
         setTimeout(() => {
           console.log(...value);
         }, 100);
         nodelog(
-          ...value.flatMap(i => {
+          // @ts-ignore
+          ...value.flatMap((i: any) => {
             const protoName = Object.prototype.toString.call(i);
             const protoNamePrettyPrint = protoName.replace('object ', '').replace(/\[|\]/g, '') + ':';
             if (protoName === '[object Array]') {
@@ -89,8 +91,12 @@ export async function browser(processor) {
             }
           })()
         `);
-      } catch (Error) {
-        log(Error.toString())
+      } catch (error) {
+        if (!(error instanceof Error)) {
+          log(`An unkown error has occurred.`);
+          return;
+        }
+        log(error.toString())
       }
     },
       processor.func

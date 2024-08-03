@@ -106,7 +106,7 @@ in your `.ts` files:
 An alternative to using the CLI flags, you can create `scratchpad.config.js`.
 
 ```js
-export default /** @type {import('@heymp/scratchpad/config').Config} */ ({
+export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
   devtools: true,
   url: 'https://internal-rhdc-review-itmktgwsa-hklqgj.apps.int.spoke.preprod.us-west-2.aws.paas.redhat.com/en/test-page-2',
   headless: true,
@@ -120,7 +120,7 @@ This allows you to interact with the Playwright API to perform actions like bloc
 network requests or navigating to different urls.
 
 ```js
-export default /** @type {import('@heymp/scratchpad/config').Config} */ ({
+export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
   devtools: true,
   playwright: async (args) => {
     const { context, page } = args;

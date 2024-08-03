@@ -9,7 +9,6 @@
   "files": [
     "bin/cli.js",
     "src/**",
-    "config.d.ts",
     "types.d.ts"
   ],
   "dependencies": {
@@ -18,11 +17,14 @@
     "playwright": "^1.44.1"
   },
   "scripts": {
-    "start": "node ./bin/cli.js --",
+    "build": "tsc",
+    "build:watch": "tsc -w",
     "release": "npx @changesets/cli publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.1"
+    "@changesets/cli": "^2.27.1",
+    "@types/node": "^22.1.0",
+    "typescript": "^5.5.4"
   },
   "publishConfig": {
     "access": "public"
