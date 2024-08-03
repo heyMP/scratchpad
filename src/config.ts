@@ -32,7 +32,7 @@ async function importConfig(rootDir:string) {
   }
 }
 
-export async function getConfig() {
+export async function getConfig(): Promise<Config> {
   const rootDir = process.cwd();
   return {
     ...await importConfig(rootDir),

@@ -1,6 +1,6 @@
 import playwright from 'playwright';
 import util from 'node:util';
-import type { Processor } from './cli.js';
+import type { Processor } from './Processor.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -11,20 +11,21 @@ function nodelog(value:any) {
 export async function browser(processor: Processor) {
   // Launch the browser
   const browser = await playwright['chromium'].launch({
-    headless: !!processor.headless,
-    devtools: !!processor.devtools
+    headless: !!processor.opts.headless,
+    devtools: !!processor.opts.devtools
   });
   const context = await browser.newContext();
   const page = await context.newPage();
+  const playwrightConfig = processor.opts.playwright;
 
   // Allow playwright config override
-  if (processor.playwrightConfig && typeof processor.playwrightConfig === 'function') {
-    await processor.playwrightConfig({ browser, context, page });
+  if (playwrightConfig && typeof playwrightConfig === 'function') {
+    await playwrightConfig({ browser, context, page });
   }
 
   // Create a page
-  if (processor.url) {
-    await page.goto(processor.url);
+  if (processor.opts.url) {
+    await page.goto(processor.opts.url);
   }
 
   await page.exposeFunction('clear', () => {
