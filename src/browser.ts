@@ -10,6 +10,15 @@ function nodelog(value: any) {
   console.log(value);
 }
 
+function writeFile(path: string, data: any) {
+  return fs.writeFile(join(process.cwd(), path), data);
+}
+
+function appendFile(path: string, data: any) {
+  return fs.appendFile(join(process.cwd(), path), data);
+}
+
+
 export async function browser(processor: Processor) {
   // Launch the browser
   const browser = await playwright['chromium'].launch({
@@ -20,26 +29,18 @@ export async function browser(processor: Processor) {
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
 
-  function writeFile(path: string, data: any) {
-    return fs.writeFile(join(process.cwd(), path), data);
-  }
-
-  function appendFile(path: string, data: any) {
-    return fs.appendFile(join(process.cwd(), path), data);
-  }
-
   // Exposed functions
-  context.exposeFunction('clear', () => {
+  await context.exposeFunction('writeFile', writeFile);
+  await context.exposeFunction('appendFile', appendFile);
+  await context.exposeFunction('nodelog', (...value: any) => {
+    console.log(...value);
+  });
+  await context.exposeFunction('clear', () => {
     console.clear();
     page.evaluate(() => {
       console.clear()
     });
   });
-  context.exposeFunction('nodelog', (...value: any) => {
-    console.log(...value);
-  });
-  context.exposeFunction('writeFile', writeFile);
-  context.exposeFunction('appendFile', appendFile);
 
   // Allow playwright config override
   if (playwrightConfig && typeof playwrightConfig === 'function') {
