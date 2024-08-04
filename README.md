@@ -28,15 +28,48 @@ Commands:
   help [command]        display help for command
 ```
 
+## Config
+
+An alternative to using the CLI flags, you can create `scratchpad.config.js`.
+
+```js
+export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+  devtools: true,
+  url: 'https://internal-rhdc-review-itmktgwsa-hklqgj.apps.int.spoke.preprod.us-west-2.aws.paas.redhat.com/en/test-page-2',
+  headless: true,
+});
+```
+
+### Playwright runtime
+
+The `scratchpad.config.js` exposes a method for altering the playwright runtime.
+This allows you to interact with the Playwright API to perform actions like blocking
+network requests or navigating to different urls.
+
+```js
+export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+  devtools: true,
+  playwright: async (args) => {
+    const { context, page } = args;
+    // block esmodule shims
+    await context.route(/es-module-shims\.js/, async route => {
+      await route.abort();
+    });
+    await page.goto('https://ux.redhat.com');
+  }
+});
+```
 
 ## Logging
 
-To send log information from the Chromium browser to node.js we expose two logging helpers, `log()` & `clear()`.
+To send log information from the Chromium browser to node.js we expose the following functions.
 
 | Method | Description                                | Example   |
 |--------|--------------------------------------------|-----------|
 | log    | Log data to the stdnout of our terminal and to the Chromium Console it's running. Supports logging advanced types like Arrays, Generators, Iteratiors, Maps, Sets, and Functions. | `log(new Map([[1,2]])` |
 | clear  | Clear the previous console output results. | `clear()` |
+| writeFile  | Write data to a local file. | `writeFile('./log.txt', data)` |
+| appendFile  | Append data to a local file. | `appendFile('./log.txt', data)` |
 
 
 Example
@@ -64,6 +97,26 @@ log([...set.values()]);
 log([...set.entries()]);
 log(new Promise(res => res()));
 log(function hello() { return 'world' });
+```
+
+## Custom exposed functions
+
+You can provide your own custom exposed functions using the `scratchpad.config.js` file.
+
+```.js
+import { join } from 'node:path'
+import fs from 'node:fs/promises';
+
+function loadFile(path) {
+  return fs.readFile(join(process.cwd(), path), 'utf8');
+}
+
+export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+  playwright: async (args) => {
+    const { context, page } = args;
+    await context.exposeFunction('loadFile', loadFile)
+  }
+});
 ```
 
 ## Typescript
@@ -101,37 +154,6 @@ in your `.ts` files:
 /// <reference path="./node_modules/@heymp/scratchpad/types.d.ts" />
 ```
 
-## Config
-
-An alternative to using the CLI flags, you can create `scratchpad.config.js`.
-
-```js
-export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
-  devtools: true,
-  url: 'https://internal-rhdc-review-itmktgwsa-hklqgj.apps.int.spoke.preprod.us-west-2.aws.paas.redhat.com/en/test-page-2',
-  headless: true,
-});
-```
-
-### Playwright runtime
-
-The `scratchpad.config.js` exposes a method for altering the playwright runtime.
-This allows you to interact with the Playwright API to perform actions like blocking
-network requests or navigating to different urls.
-
-```js
-export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
-  devtools: true,
-  playwright: async (args) => {
-    const { context, page } = args;
-    // block esmodule shims
-    await context.route(/es-module-shims\.js/, async route => {
-      await route.abort();
-    });
-    await page.goto('https://ux.redhat.com');
-  }
-});
-```
 
 ## Development
 
