@@ -1,10 +1,12 @@
 import playwright from 'playwright';
 import util from 'node:util';
+import { join } from 'node:path'
+import fs from 'node:fs/promises';
 import type { Processor } from './Processor.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
-function nodelog(value:any) {
+function nodelog(value: any) {
   console.log(value);
 }
 
@@ -18,6 +20,27 @@ export async function browser(processor: Processor) {
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
 
+  function writeFile(path: string, data: any) {
+    return fs.writeFile(join(process.cwd(), path), data);
+  }
+
+  function appendFile(path: string, data: any) {
+    return fs.appendFile(join(process.cwd(), path), data);
+  }
+
+  // Exposed functions
+  context.exposeFunction('clear', () => {
+    console.clear();
+    page.evaluate(() => {
+      console.clear()
+    });
+  });
+  context.exposeFunction('nodelog', (...value: any) => {
+    console.log(...value);
+  });
+  context.exposeFunction('writeFile', writeFile);
+  context.exposeFunction('appendFile', appendFile);
+
   // Allow playwright config override
   if (playwrightConfig && typeof playwrightConfig === 'function') {
     await playwrightConfig({ browser, context, page });
@@ -27,17 +50,6 @@ export async function browser(processor: Processor) {
   if (processor.opts.url) {
     await page.goto(processor.opts.url);
   }
-
-  await page.exposeFunction('clear', () => {
-    console.clear();
-    page.evaluate(() => {
-      console.clear()
-    });
-  });
-
-  await page.exposeFunction('nodelog', (...value: any) => {
-    console.log(...value);
-  });
 
   async function execute() {
     page.evaluate(async (func) => {
