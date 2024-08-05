@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.9
+
+### Patch Changes
+
+- 556669b: Update Readme
+
 ## 1.0.0-next.8
 
 ### Major Changes
