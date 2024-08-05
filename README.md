@@ -35,7 +35,7 @@ An alternative to using the CLI flags, you can create `scratchpad.config.js`.
 ```js
 export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
   devtools: true,
-  url: 'https://internal-rhdc-review-itmktgwsa-hklqgj.apps.int.spoke.preprod.us-west-2.aws.paas.redhat.com/en/test-page-2',
+  url: 'https://google.com',
   headless: true,
 });
 ```
