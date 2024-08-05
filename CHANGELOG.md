@@ -1,5 +1,82 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.8
+
+### Major Changes
+
+- 4aa2817: Add `generate config` command [#38](https://github.com/heyMP/scratchpad/issues/38)
+
+  ```bash
+  npx @heymp/scratchpad generate --help
+
+  Usage: scratchpad generate [options] [command]
+
+  Generate files from templates.
+
+  Options:
+    -h, --help      display help for command
+
+  Commands:
+    config          Generates an example config file.
+    help [command]  display help for command
+  ```
+
+- 4aa2817: Add `run` command
+
+  ```bash
+  npx @heymp/scratchpad run --help
+
+  Usage: cli run [options] <file>
+
+  Execute a file in a browser.
+
+  Arguments:
+    file                  file to execute in the browser.
+
+  Options:
+    --headless [boolean]  specify running the browser in headless
+                          mode.
+    --devtools [boolean]  open browser devtools automatically.
+    --ts-write [boolean]  write the js output of the target ts file.
+    --url [string]        specify a specific url to execute the code
+                          in.
+    -h, --help            display help for command
+  ```
+
+### Minor Changes
+
+- ea5b50d: Add `writeFile`, `appendFile` exposed functions. (#44)[https://github.com/heyMP/scratchpad/issues/44]
+
+  ```.js
+  await writeFile('./log.txt', 'hello');
+  await appendFile('./log.txt', '\n');
+  await appendFile('./log.txt', 'world');
+  ```
+
+  Include custom exposed functions example.
+
+  ```.js
+  import { join } from 'node:path'
+  import fs from 'node:fs/promises';
+
+  function loadFile(path) {
+    return fs.readFile(join(process.cwd(), path), 'utf8');
+  }
+
+  export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+    playwright: async (args) => {
+      const { context, page } = args;
+      await context.exposeFunction('loadFile', loadFile)
+    }
+  });
+  ```
+
+- a242c0f: ⚠️ Change config types directory.
+
+  ```js
+  export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({});
+  ```
+
 ## 1.0.0-next.7
 
 ### Minor Changes
