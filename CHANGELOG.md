@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.10
+
+### Patch Changes
+
+- e628851: Fix cannot find package '@commander-js/extra-typings error.
+
 ## 1.0.0-next.9
 
 ### Patch Changes
