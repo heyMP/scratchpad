@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import * as esbuild from 'esbuild';
+import { build } from 'esbuild';
 
 export class ProcessorChangeEvent extends Event {
   constructor() {
@@ -58,7 +58,7 @@ export class Processor extends EventTarget {
         throw new Error(`${file} file not found.`);
       }
       if (file.endsWith('.ts')) {
-        const { outputFiles: [stdout]} = await esbuild.build({
+        const { outputFiles: [stdout]} = await build({
           entryPoints: [file],
           format: 'esm',
           bundle: true,
