@@ -63,19 +63,23 @@ export async function browser(processor: Processor) {
           ...value.flatMap((i: any) => {
             const protoName = Object.prototype.toString.call(i);
             const protoNamePrettyPrint = protoName.replace('object ', '').replace(/\[|\]/g, '') + ':';
+
+            if (protoName === '[object Undefined]') {
+              return [i];
+            }
             if (protoName === '[object Array]') {
               return [protoNamePrettyPrint, i];
             }
             if (protoName === '[object Set]') {
               return [protoNamePrettyPrint, [...i.values()]];
             }
-            else if (protoName === '[object Map]') {
+            if (protoName === '[object Map]') {
               return [protoNamePrettyPrint, [...i.entries()]];
             }
-            else if (protoName === '[object Generator]') {
+            if (protoName === '[object Generator]') {
               return [protoNamePrettyPrint, i.next()];
             }
-            else if (typeof i[Symbol.iterator] === 'function') {
+            if (typeof i[Symbol.iterator] === 'function') {
               if (!['[object String]', '[object Array]'].includes(protoName)) {
                 return [protoNamePrettyPrint, [...i]]
               }
