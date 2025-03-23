@@ -1,5 +1,13 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.12
+
+### Patch Changes
+
+- 541383a: Fix: logging undefined breaks log output
+
+  fixes: #58
+
 ## 1.0.0-next.11
 
 ### Minor Changes
