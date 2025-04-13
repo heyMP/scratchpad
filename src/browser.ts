@@ -18,6 +18,9 @@ function appendFile(path: string, data: any) {
   return fs.appendFile(join(process.cwd(), path), data);
 }
 
+function readFile(...args: Parameters<typeof fs.readFile>) {
+  return fs.readFile(...args);
+}
 
 export async function browser(processor: Processor) {
   // Launch the browser
@@ -32,6 +35,7 @@ export async function browser(processor: Processor) {
   // Exposed functions
   await context.exposeFunction('writeFile', writeFile);
   await context.exposeFunction('appendFile', appendFile);
+  await context.exposeFunction('readFile', readFile);
   await context.exposeFunction('nodelog', (...value: any) => {
     console.log(...value);
   });
