@@ -1,5 +1,17 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.13
+
+### Minor Changes
+
+- 21f3bed: Add global readFile method
+
+  Example
+
+  ```js
+  await readFile("./log.txt", "utf8");
+  ```
+
 ## 1.0.0-next.12
 
 ### Patch Changes
