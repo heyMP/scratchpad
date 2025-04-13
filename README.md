@@ -70,6 +70,7 @@ To send log information from the Chromium browser to node.js we expose the follo
 | clear  | Clear the previous console output results. | `clear()` |
 | writeFile  | Write data to a local file. | `writeFile('./log.txt', data)` |
 | appendFile  | Append data to a local file. | `appendFile('./log.txt', data)` |
+| readFile  | read data from a local file. | `readFile('./log.txt', 'utf8')` |
 
 
 Example

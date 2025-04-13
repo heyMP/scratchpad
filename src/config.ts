@@ -54,6 +54,7 @@ async function importConfig(): Promise<Partial<Config>> {
       format: 'esm',
       bundle: true,
       write: false,
+      platform: 'node'
     });
     const contents = new TextDecoder().decode(stdout.contents);
     const module = await import(esm`${contents}`);
