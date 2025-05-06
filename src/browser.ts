@@ -11,15 +11,15 @@ function nodelog(value: any) {
 }
 
 function writeFile(path: string, data: any) {
-  return fs.writeFile(join(process.cwd(), path), data);
+  return fs.writeFile(path, data);
 }
 
 function appendFile(path: string, data: any) {
-  return fs.appendFile(join(process.cwd(), path), data);
+  return fs.appendFile(path, data);
 }
 
-function readFile(...args: Parameters<typeof fs.readFile>) {
-  return fs.readFile(...args);
+function readFile(path: string) {
+  return fs.readFile(path, 'utf8');
 }
 
 export async function browser(processor: Processor) {
