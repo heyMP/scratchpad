@@ -2,10 +2,17 @@
   "name": "@heymp/scratchpad",
   "description": "Run TS/JS snippets in a locally",
   "version": "1.0.0-next.13",
-  "main": "bin/cli.js",
+  "main": "src/lib/index.js",
+  "module": "src/lib/index.js",
   "type": "module",
   "bin": {
     "scratchpad": "bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/lib/index.d.ts.js",
+      "default": "./src/lib/index.js"
+    }
   },
   "files": [
     "bin/cli.js",

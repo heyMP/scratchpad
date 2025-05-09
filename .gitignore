@@ -1,5 +1,7 @@
-node_modules
+# Dependencies
+node_modules/
 
-src/**.js
-src/**.d.ts
-src/**.d.ts.map
+# Compiled JavaScript and TypeScript definition files from the src directory
+src/**/*.js
+src/**/*.d.ts
+src/**/*.d.ts.map

@@ -47,7 +47,9 @@ This allows you to interact with the Playwright API to perform actions like bloc
 network requests or navigating to different urls.
 
 ```js
-export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+import { defineConfig } from '@heymp/scratchpad';
+
+export default defineConfig({
   devtools: true,
   playwright: async (args) => {
     const { context, page } = args;
@@ -56,6 +58,92 @@ export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
       await route.abort();
     });
     await page.goto('https://ux.redhat.com');
+  }
+});
+```
+
+#### Reroute Documents
+
+The `rerouteDocument` function allows you to replace the HTML content of any webpage with a local HTML file from your system. This is incredibly useful for testing changes or developing components in the context of a live site without deploying your code.
+
+When used, `rerouteDocument` also watches your local HTML file for changes. If you save an update to the file, the Playwright page will automatically reload to reflect your latest edits, providing a fast feedback loop.
+
+**How it works:**
+
+* It intercepts requests made by the Playwright `page` that are for HTML documents.
+* It maps the URL's path to a local file structure. For instance, if you are on `http://example.com/user/profile` and you've set your local directory to `'./my-pages'`, the function will look for `'./my-pages/user/profile/index.html'`.
+
+**Usage:**
+
+You would typically use this function within the `playwright` async method in your `scratchpad.config.js`:
+
+```javascript
+import { defineConfig, rerouteDocument } from '@heymp/scratchpad';
+
+export default defineConfig({
+  url: 'https://example.com', // The initial URL you are working with
+  playwright: async (args) => {
+    const { page } = args;
+
+    // Tell Scratchpad to serve local HTML files from the './pages' directory
+    // whenever a document is requested.
+    await rerouteDocument(page, './pages');
+
+    // Now, if you navigate to https://example.com/some/path,
+    // Scratchpad will try to serve './pages/some/path/index.html'.
+    // If that file doesn't exist, it will load the original page from the web.
+  }
+});
+```
+
+#### Reroute URLs
+
+The `rerouteUrl` function gives you the power to intercept network requests for specific assets (like JavaScript files, CSS, images, or API calls) and redirect them. You can reroute a `target` URL to either another live `source` URL or to a `source` local file from your system. This is incredibly useful for testing local versions of assets against a live site, mocking API responses, or redirecting to different service endpoints without deploying code.
+
+If you save an update to this file, the Playwright page will automatically reload to show your latest edits, creating a very fast development feedback loop.
+
+**How it works:**
+
+* It uses Playwright's `page.route()` to intercept network requests that match the `target` URL or pattern you specify.
+* If you set `type: 'url'`, it fetches the content from your specified `source` URL instead of the original `target`.
+* If you set `type: 'path'`, it serves the content from your local `source` file. It also starts watching this file, and if any changes are detected, it reloads the page.
+
+**Usage:**
+
+You typically use `rerouteUrl` within the `playwright` async method in your configuration file (e.g., `scratchpad.config.js`):
+
+```javascript
+import * as Scratchpad from '@heymp/scratchpad'; // Or your specific import path
+
+export default Scratchpad.defineConfig({
+  url: 'https://www.your-website.com',
+  playwright: async (args) => {
+    const { page } = args;
+
+    // Example 1: Reroute a specific JavaScript file to a local version
+    await Scratchpad.rerouteUrl(page, {
+      type: 'path',
+      target: '**/scripts/main-app.js', // Intercept requests for this JS file
+      source: './local-dev/main-app.js'  // Serve your local version instead
+    });
+
+    // Example 2: Reroute an API call to a different endpoint
+    await Scratchpad.rerouteUrl(page, {
+      type: 'url',
+      target: 'https://api.production.com/data', // Original API endpoint
+      source: 'https://api.staging.com/data'     // Reroute to staging API
+    });
+
+    // Example 3: Reroute an API call to a local mock JSON file
+    await Scratchpad.rerouteUrl(page, {
+      type: 'path',
+      target: 'https://api.production.com/user/settings',
+      source: './mocks/user-settings.json' // Serve local mock data
+    });
+
+    // Now, when the page requests '**/scripts/main-app.js',
+    // your local './local-dev/main-app.js' will be served and auto-reloaded on change.
+    // Requests to 'https://api.production.com/data' will go to the staging API.
   }
 });
 ```
