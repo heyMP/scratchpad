@@ -1,5 +1,33 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.14
+
+### Minor Changes
+
+- 71270e1: Add config and playwright rerouting helpers
+
+  Export `defineConfig`, `rerouteUrl`, `rerouteDocument`.
+
+  Example:
+
+  ```ts
+  import * as Scratchpad from "@heymp/scratchpad";
+
+  export default Scratchpad.defineConfig({
+    devtools: true,
+    url: "https://www.redhat.com/en",
+    playwright: async (args) => {
+      const { page } = args;
+      await Scratchpad.rerouteDocument(page, "./pages");
+      await Scratchpad.rerouteUrl(page, {
+        type: "path",
+        target: "**/rh-cta/rh-cta.js",
+        source: "./rh-cta.js",
+      });
+    },
+  });
+  ```
+
 ## 1.0.0-next.13
 
 ### Minor Changes
