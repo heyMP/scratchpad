@@ -49,18 +49,29 @@ This allows you to interact with the Playwright API to perform actions like bloc
 network requests or navigating to different urls.
 
 ```js
+export default ({
+  devtools: true,
+  url: 'https://google.com',
+  headless: true,
+});
+```
+
+#### Define Config
+
+While you can create a `scratchpad.config.js` file above without installing this package,
+it's recommended to install `@heymp/scratchpad` and use the `defineConfig` helper to access
+the correct types.
+
+**Usage:**
+
+`scratchpad.config.js`
+```ts
 import { defineConfig } from '@heymp/scratchpad';
 
 export default defineConfig({
   devtools: true,
-  playwright: async (args) => {
-    const { context, page } = args;
-    // block esmodule shims
-    await context.route(/es-module-shims\.js/, async route => {
-      await route.abort();
-    });
-    await page.goto('https://ux.redhat.com');
-  }
+  url: 'https://google.com',
+  headless: true,
 });
 ```
 
@@ -79,6 +90,7 @@ When used, `rerouteDocument` also watches your local HTML file for changes. If y
 
 You would typically use this function within the `playwright` async method in your `scratchpad.config.js`:
 
+`scratchpad.config.js`
 ```javascript
 import { defineConfig, rerouteDocument } from '@heymp/scratchpad';
 
@@ -114,8 +126,9 @@ If you save an update to this file, the Playwright page will automatically reloa
 
 You typically use `rerouteUrl` within the `playwright` async method in your configuration file (e.g., `scratchpad.config.js`):
 
+`scratchpad.config.js`
 ```javascript
-import * as Scratchpad from '@heymp/scratchpad'; // Or your specific import path
+import * as Scratchpad from '@heymp/scratchpad';
 
 export default Scratchpad.defineConfig({
   url: 'https://www.your-website.com',
@@ -196,6 +209,7 @@ log(undefined);
 You can provide your own custom exposed functions using the `scratchpad.config.js` file.
 
 ```.js
+import * as Scratchpad from '@heymp/scratchpad';
 import { join } from 'node:path'
 import fs from 'node:fs/promises';
 
@@ -203,7 +217,7 @@ function loadFile(path) {
   return fs.readFile(join(process.cwd(), path), 'utf8');
 }
 
-export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
+export default defineConfig({
   playwright: async (args) => {
     const { context, page } = args;
     await context.exposeFunction('loadFile', loadFile)
@@ -239,13 +253,12 @@ yourself.
 }
 ```
 
-An alternatice to the `tsconfig.json` file is to use the following triple-slash comment
+An alternative to the `tsconfig.json` file is to use the following triple-slash comment
 in your `.ts` files:
 
 ```ts
 /// <reference path="./node_modules/@heymp/scratchpad/types.d.ts" />
 ```
-
 
 ## Development
 
