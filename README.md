@@ -11,6 +11,8 @@ https://github.com/heyMP/scratchpad/assets/3428964/2a58d587-510d-418f-bd8a-99958
 npx @heymp/scratchpad@next run ./my-test-file.js
 ```
 
+Note: This is still in development. Use the `next` tag until 1.0 release is ready.
+
 ## Commands
 
 ```bash
