@@ -26,7 +26,7 @@ Options:
 
 Commands:
   run [options] <file>  Execute a file in a browser.
-  generate              Generate files from templates.
+  generate              Generate files from templates or remote data.
   help [command]        display help for command
 ```
 
@@ -176,7 +176,7 @@ To send log information from the Chromium browser to node.js we expose the follo
 | readFile  | read data from a local file. | `readFile('./log.txt', 'utf8')` |
 
 
-Example
+**Log example**
 
 ```js
 clear();
