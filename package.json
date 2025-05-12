@@ -1,7 +1,7 @@
 {
   "name": "@heymp/scratchpad",
   "description": "Run TS/JS snippets in a locally",
-  "version": "1.0.0-next.14",
+  "version": "1.0.0-next.15",
   "main": "src/lib/index.js",
   "module": "src/lib/index.js",
   "type": "module",
