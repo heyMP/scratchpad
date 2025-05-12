@@ -92,6 +92,8 @@ You can then reuse the session by using the `login` option when using the `run` 
 npx @heymp/scratchpad@next run --login
 ```
 
+🚨 It is highly recommended to add the `.scratchpad` directory to your .gitignore file. Never commit or share your session `login.json` file!
+
 #### Reroute Documents
 
 The `rerouteDocument` function allows you to replace the HTML content of any webpage with a local HTML file from your system. This is incredibly useful for testing changes or developing components in the context of a live site without deploying your code.
