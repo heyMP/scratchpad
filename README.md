@@ -177,9 +177,16 @@ export default Scratchpad.defineConfig({
 });
 ```
 
-## Logging
+## Generate files
 
-To send log information from the Chromium browser to node.js we expose the following functions.
+| Method | Description                                | Example   |
+|--------|--------------------------------------------|-----------|
+| document | Fetch HTML source of url and save it to a local file. This is helpful when using the `rerouteDocument` command. | `npx @heymp/scratchpad@next generate document https://www.example.com pages ` |
+| login  | Launch a new browser that saves your session so it can be reused. | `npx @heymp/scratchpad@next generate login` |
+
+## Default exposed functions 
+
+The following functions are exposed by default that can be used in the `run` commands target file.
 
 | Method | Description                                | Example   |
 |--------|--------------------------------------------|-----------|
