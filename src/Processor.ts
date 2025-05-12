@@ -12,6 +12,7 @@ export type ProcessorOpts = {
   headless?: boolean;
   devtools?: boolean;
   tsWrite?: boolean;
+  login?: boolean;
   url?: string;
   playwright?: any;
   file: string;
@@ -41,6 +42,13 @@ export class Processor extends EventTarget {
 
   watcher() {
     const file = this.opts.file;
+
+    if (this.opts.login) {
+      if (!fs.existsSync(join(process.cwd(), '.scratchpad', 'login.json'))) {
+        throw new Error(`Session file not found.`);
+      }
+    }
+
     if (!fs.existsSync(file)) {
       throw new Error(`${file} file not found.`);
     }

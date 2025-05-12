@@ -75,6 +75,20 @@ export default defineConfig({
 });
 ```
 
+#### Save browser session
+
+Using Playwright, you can launch a new session with the `generate login` command. This will launch a new browser session where you can authenticate to a website. After you have authenticated you can close the browser session. You session will be saved to a local file `.scratchpad/login.json`.
+
+```bash
+npx @heymp/scratchpad@next login
+```
+
+You can then reuse the session by using the `login` option when using the `run` command.
+
+```bash
+npx @heymp/scratchpad@next run --login
+```
+
 #### Reroute Documents
 
 The `rerouteDocument` function allows you to replace the HTML content of any webpage with a local HTML file from your system. This is incredibly useful for testing changes or developing components in the context of a live site without deploying your code.

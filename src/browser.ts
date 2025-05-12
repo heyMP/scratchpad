@@ -3,6 +3,7 @@ import util from 'node:util';
 import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor } from './Processor.js';
+import { getSession } from './login.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -23,12 +24,15 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
 }
 
 export async function browser(processor: Processor) {
+  // Get session login session
   // Launch the browser
   const browser = await playwright['chromium'].launch({
     headless: !!processor.opts.headless,
     devtools: !!processor.opts.devtools
   });
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    storageState: processor.opts.login ? await getSession('.scratchpad/login.json') : undefined,
+  });
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
 

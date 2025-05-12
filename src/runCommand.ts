@@ -10,6 +10,7 @@ export const runCommand = new Command('run')
   .option('--devtools [boolean]', 'open browser devtools automatically.')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
+  .option('--login [boolean]', `use previously saved session from 'generate login' command`)
   .action(async (file, options, command) => {
     const config = await getConfig();
     const opts = { ...config, ...options};
@@ -20,6 +21,7 @@ export const runCommand = new Command('run')
       tsWrite: !!opts['tsWrite'],
       url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
       playwright: opts['playwright'],
+      login: !!opts['login'],
       file,
     });
     browser(processor);
