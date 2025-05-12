@@ -46,13 +46,16 @@ export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
 
 The `scratchpad.config.js` exposes a method for altering the playwright runtime.
 This allows you to interact with the Playwright API to perform actions like blocking
-network requests or navigating to different urls.
+network requests or navigating to different urls. See [https://playwright.dev/](https://playwright.dev/) for documentation on using the Playwright runtime.
 
 ```js
 export default ({
   devtools: true,
   url: 'https://google.com',
   headless: true,
+  playwright: async (args) => {
+    const { page, context } = args;
+  }
 });
 ```
 
