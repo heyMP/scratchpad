@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.16
+
+### Patch Changes
+
+- 7522bd7: Fix: generate config failing
+
 ## 1.0.0-next.15
 
 ### Minor Changes
