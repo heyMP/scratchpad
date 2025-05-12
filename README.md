@@ -26,7 +26,7 @@ Options:
 
 Commands:
   run [options] <file>  Execute a file in a browser.
-  generate              Generate files from templates.
+  generate              Generate files from templates or remote data.
   help [command]        display help for command
 ```
 
@@ -73,6 +73,20 @@ export default defineConfig({
   url: 'https://google.com',
   headless: true,
 });
+```
+
+#### Save browser session
+
+Using Playwright, you can launch a new session with the `generate login` command. This will launch a new browser session where you can authenticate to a website. After you have authenticated you can close the browser session. You session will be saved to a local file `.scratchpad/login.json`.
+
+```bash
+npx @heymp/scratchpad@next login
+```
+
+You can then reuse the session by using the `login` option when using the `run` command.
+
+```bash
+npx @heymp/scratchpad@next run --login
 ```
 
 #### Reroute Documents
@@ -163,9 +177,16 @@ export default Scratchpad.defineConfig({
 });
 ```
 
-## Logging
+## Generate files
 
-To send log information from the Chromium browser to node.js we expose the following functions.
+| Method | Description                                | Example   |
+|--------|--------------------------------------------|-----------|
+| document | Fetch HTML source of url and save it to a local file. This is helpful when using the `rerouteDocument` command. | `npx @heymp/scratchpad@next generate document https://www.example.com pages ` |
+| login  | Launch a new browser that saves your session so it can be reused. | `npx @heymp/scratchpad@next generate login` |
+
+## Default exposed functions 
+
+The following functions are exposed by default that can be used in the `run` commands target file.
 
 | Method | Description                                | Example   |
 |--------|--------------------------------------------|-----------|
@@ -176,7 +197,7 @@ To send log information from the Chromium browser to node.js we expose the follo
 | readFile  | read data from a local file. | `readFile('./log.txt', 'utf8')` |
 
 
-Example
+**Log example**
 
 ```js
 clear();
