@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor } from './Processor.js';
 import { getSession } from './login.js';
+import { rerouteDocument } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -35,6 +36,10 @@ export async function browser(processor: Processor) {
   });
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
+
+  if (processor.opts.rerouteDir) {
+    await rerouteDocument(page, processor);
+  }
 
   // Exposed functions
   await context.exposeFunction('writeFile', writeFile);

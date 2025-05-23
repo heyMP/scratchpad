@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { build } from 'esbuild';
+import type { Config } from './config.js';
 
 export class ProcessorChangeEvent extends Event {
   constructor() {
@@ -8,13 +9,7 @@ export class ProcessorChangeEvent extends Event {
   }
 }
 
-export type ProcessorOpts = {
-  headless?: boolean;
-  devtools?: boolean;
-  tsWrite?: boolean;
-  login?: boolean;
-  url?: string;
-  playwright?: any;
+export type ProcessorOpts = Config & {
   file: string;
 }
 

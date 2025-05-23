@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { extname, join } from 'node:path';
 import type { Page } from 'playwright';
 import type { RerouteUrlParams } from './types.js';
 import { Config } from '../config.js';
@@ -39,22 +39,23 @@ export async function rerouteDocument(context: Page, dir: string) {
       await route.fallback();
       return;
     }
-    const pageName = new URL(route.request().url())
-      .pathname
-      .replace(/^\//, '');
-    const pagePath = join(dir, `${pageName}/index.html`);
+    const url = new URL(route.request().url())
+    const basepath = !extname(url.pathname)
+      ? join(url.pathname, 'index.html')
+      : url.pathname;
+    const pagePath = join(dir, basepath);
 
     // watch file for changes
     watchFile(pagePath, watchCallback);
 
-    const dashboardHtml = await readFile(join(process.cwd(), pagePath), 'utf8')
+    const content = await readFile(join(process.cwd(), pagePath), 'utf8')
       .catch(() => null);
 
-    if (dashboardHtml) {
+    if (content) {
       const response = await route.fetch();
       await route.fulfill({
         response,
-        body: dashboardHtml
+        body: content
       });
       console.log(`\x1b[33m 🚸 Page override:\x1b[0m ${pagePath}`);
     } else {

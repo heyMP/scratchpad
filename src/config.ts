@@ -15,6 +15,7 @@ export type Config = {
   tsWrite?: boolean;
   url?: string;
   login?: boolean;
+  rerouteDir?: string;
   playwright?: (page: PlaywrightConfig) => Promise<void>
 }
 
