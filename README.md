@@ -92,9 +92,48 @@ You can then reuse the session by using the `login` option when using the `run` 
 npx @heymp/scratchpad@next run --login
 ```
 
+#### Reroute Local Files
+
+The `rerouteLocal` function allows you to replace the contents of a document or asset file with a local file from your system. This is incredibly useful for testing changes or developing components in the context of a live site without deploying your code.
+
+When used, `rerouteLocal` also watches for file for changes. If you save an update to the file, the Playwright page will automatically reload to reflect your latest edits, providing a fast feedback loop.
+
+**How it works:**
+
+* It intercepts requests made by the Playwright `page.
+* If the request is not of type `document` it will URL's path to a local file structure. 
+* If the request is of type `document` (e.g. `http://example.com/user/profile`) and you've set your local directory to `'./my-pages'`, the function will look for `'./my-pages/user/profile/index.html'`.
+
+**Usage:**
+
+You would typically use this function within the `playwright` async method in your `scratchpad.config.js`:
+
+`scratchpad.config.js`
+```javascript
+import { defineConfig, rerouteDocument } from '@heymp/scratchpad';
+
+export default defineConfig({
+  url: 'https://example.com', // The initial URL you are working with
+  playwright: async (args) => {
+    const { page } = args;
+
+    // Tell Scratchpad to serve local HTML files from the './pages' directory
+    // whenever a document is requested.
+    await rerouteLocal(page, './pages');
+
+    // Now, if you navigate to https://example.com/some/path,
+    // Scratchpad will try to serve './pages/some/path/index.html'.
+    // If that file doesn't exist, it will load the original page from the web.
+
+    // If there is a local file of `./assets/scripts.js` it will serve the contents
+    // of that local file.
+  }
+});
+```
+
 🚨 It is highly recommended to add the `.scratchpad` directory to your .gitignore file. Never commit or share your session `login.json` file!
 
-#### Reroute Documents
+#### Reroute Documents [deprecated]
 
 The `rerouteDocument` function allows you to replace the HTML content of any webpage with a local HTML file from your system. This is incredibly useful for testing changes or developing components in the context of a live site without deploying your code.
 

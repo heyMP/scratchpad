@@ -22,6 +22,7 @@ export const runCommand = new Command('run')
       url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
       playwright: opts['playwright'],
       login: !!opts['login'],
+      rerouteDir: opts['rerouteDir'],
       file,
     });
     browser(processor);

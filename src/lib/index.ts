@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { extname, join, basename } from 'node:path';
 import type { Page } from 'playwright';
 import type { RerouteUrlParams } from './types.js';
 import { Config } from '../config.js';
@@ -18,6 +18,51 @@ export function defineConfig(config: Config) {
 }
 
 /**
+ * Reroutes requests to local files within a specified directory. If the file exists locally,
+ * the contents of the local file with be used.
+ * @async
+ * @param {Page} context - The Playwright Page object to apply the rerouting to.
+ * @param {string} dir - The root directory where the local page or file (e.g., 'about/index.html', 'assets/script.js') are stored.
+ * @returns {Promise<void>} A promise that resolves when the routing has been set up.
+ */
+export async function rerouteLocal(context: Page, dir: string) {
+  // reload the page if the document has been changed
+  const watchCallback = () => {
+    context.reload();
+  }
+
+  await context.route('**', async route => {
+    const resourceType = route.request().resourceType();
+    const url = new URL(route.request().url())
+    const basepath = resourceType === 'document'
+      ? !extname(url.pathname)
+        ? join(url.pathname, 'index.html')
+        : url.pathname
+      : basename(url.pathname);
+    const pagePath = join(dir, basepath);
+
+    const content = await readFile(join(process.cwd(), pagePath), 'utf8')
+      .catch(() => null);
+
+    // watch the file for changes
+    watchFile(pagePath, watchCallback);
+
+    if (content) {
+      const response = await route.fetch();
+      await route.fulfill({
+        response,
+        body: content
+      });
+      console.log(`\x1b[33m 🚸 Page override:\x1b[0m ${pagePath}`);
+    } else {
+      await route.fallback();
+    }
+  });
+}
+
+/**
+ * @deprecated Use rerouteLocal
+ *
  * Reroutes document requests to local files within a specified directory.
  * It intercepts 'document' type requests and attempts to serve a corresponding
  * 'index.html' file from the local file system. It also watches the local file
@@ -39,22 +84,23 @@ export async function rerouteDocument(context: Page, dir: string) {
       await route.fallback();
       return;
     }
-    const pageName = new URL(route.request().url())
-      .pathname
-      .replace(/^\//, '');
-    const pagePath = join(dir, `${pageName}/index.html`);
+    const url = new URL(route.request().url())
+    const basepath = !extname(url.pathname)
+      ? join(url.pathname, 'index.html')
+      : url.pathname;
+    const pagePath = join(dir, basepath);
 
     // watch file for changes
     watchFile(pagePath, watchCallback);
 
-    const dashboardHtml = await readFile(join(process.cwd(), pagePath), 'utf8')
+    const content = await readFile(join(process.cwd(), pagePath), 'utf8')
       .catch(() => null);
 
-    if (dashboardHtml) {
+    if (content) {
       const response = await route.fetch();
       await route.fulfill({
         response,
-        body: dashboardHtml
+        body: content
       });
       console.log(`\x1b[33m 🚸 Page override:\x1b[0m ${pagePath}`);
     } else {
