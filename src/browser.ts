@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor } from './Processor.js';
 import { getSession } from './login.js';
-import { rerouteDocument } from './lib/index.js';
+import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -38,7 +38,7 @@ export async function browser(processor: Processor) {
   const playwrightConfig = processor.opts.playwright;
 
   if (processor.opts.rerouteDir) {
-    await rerouteDocument(page, processor);
+    await rerouteLocal(page, processor.opts.rerouteDir);
   }
 
   // Exposed functions
