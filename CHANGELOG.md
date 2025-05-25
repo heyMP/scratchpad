@@ -1,5 +1,28 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.17
+
+### Minor Changes
+
+- 96cefea: Add clone command to copy remote files locally
+
+  ```bash
+  npx @heymp/scratchpad@next clone https://www.example.com/scripts.js
+  ```
+
+  Added new generic helper to reroute both document and asset file types.
+
+  scratchpad.config.ts
+
+  ```ts
+  export default Scratchpad.defineConfig({
+    playwright: async (args) => {
+      const { page } = args;
+      Scratchpad.rerouteLocal(page, "pages");
+    },
+  });
+  ```
+
 ## 1.0.0-next.16
 
 ### Patch Changes
