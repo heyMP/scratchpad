@@ -5,7 +5,7 @@ import { browser } from './browser.js';
 
 export const runCommand = new Command('run')
   .description('Execute a file in a browser.')
-  .argument('<file>', 'file to execute in the browser.')
+  .argument('[file]', 'file to execute in the browser.')
   .option('--headless [boolean]', 'specify running the browser in headless mode.')
   .option('--devtools [boolean]', 'open browser devtools automatically.')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
@@ -23,7 +23,7 @@ export const runCommand = new Command('run')
       playwright: opts['playwright'],
       login: !!opts['login'],
       rerouteDir: opts['rerouteDir'],
-      file,
+      file: file,
     });
     browser(processor);
   });
