@@ -1,5 +1,15 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.18
+
+### Patch Changes
+
+- 2b88c36: File argument for run command optional
+
+  ```bash
+  npx @heymp/scratchpad@next run
+  ```
+
 ## 1.0.0-next.17
 
 ### Minor Changes
