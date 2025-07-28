@@ -10,7 +10,7 @@ export class ProcessorChangeEvent extends Event {
 }
 
 export type ProcessorOpts = Config & {
-  file: string;
+  file?: string;
 }
 
 /**
@@ -36,12 +36,15 @@ export class Processor extends EventTarget {
   }
 
   watcher() {
-    const file = this.opts.file;
-
     if (this.opts.login) {
       if (!fs.existsSync(join(process.cwd(), '.scratchpad', 'login.json'))) {
         throw new Error(`Session file not found.`);
       }
+    }
+
+    const file = this.opts.file;
+    if (!file) {
+      return;
     }
 
     if (!fs.existsSync(file)) {
@@ -56,10 +59,10 @@ export class Processor extends EventTarget {
 
   async build() {
     const file = this.opts.file;
+    if (!file) {
+      return;
+    }
     try {
-      if (!file) {
-        throw new Error(`${file} file not found.`);
-      }
       if (file.endsWith('.ts')) {
         const { outputFiles: [stdout]} = await build({
           entryPoints: [file],
