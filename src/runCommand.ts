@@ -11,7 +11,7 @@ export const runCommand = new Command('run')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .option('--login [boolean]', `use previously saved session from 'generate login' command`)
-  .action(async (file, options, command) => {
+  .action(async (file, options) => {
     const config = await getConfig();
     const opts = { ...config, ...options};
     const processor = new Processor({
@@ -23,7 +23,7 @@ export const runCommand = new Command('run')
       playwright: opts['playwright'],
       login: !!opts['login'],
       rerouteDir: opts['rerouteDir'],
-      file: file,
+      file
     });
     browser(processor);
   });
