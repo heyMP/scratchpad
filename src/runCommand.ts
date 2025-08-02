@@ -23,7 +23,8 @@ export const runCommand = new Command('run')
       playwright: opts['playwright'],
       login: !!opts['login'],
       rerouteDir: opts['rerouteDir'],
-      file
+      bypassCSP: opts['bypassCSP'],
+      file: file
     });
     browser(processor);
   });
