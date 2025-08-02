@@ -33,6 +33,7 @@ export async function browser(processor: Processor) {
   });
   const context = await browser.newContext({
     storageState: processor.opts.login ? await getSession('.scratchpad/login.json') : undefined,
+    bypassCSP: processor.opts.bypassCSP,
   });
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
