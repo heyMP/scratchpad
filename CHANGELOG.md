@@ -1,5 +1,17 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.19
+
+### Patch Changes
+
+- 02e9e73: Add bypassCSP flag to run command.
+
+  Example:
+
+  ```bash
+  scratchpad run test.ts --bypassCSP
+  ```
+
 ## 1.0.0-next.18
 
 ### Patch Changes
