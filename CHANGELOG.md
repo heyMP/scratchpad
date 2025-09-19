@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.20
+
+### Patch Changes
+
+- 9a81107: Update esbuild depencency
+
 ## 1.0.0-next.19
 
 ### Patch Changes
