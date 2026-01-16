@@ -29,7 +29,8 @@ export async function browser(processor: Processor) {
   // Launch the browser
   const browser = await playwright['chromium'].launch({
     headless: !!processor.opts.headless,
-    devtools: !!processor.opts.devtools
+    devtools: !!processor.opts.devtools,
+    args: processor.opts.bypassCSP ? ['--disable-web-security'] : [],
   });
   const context = await browser.newContext({
     storageState: processor.opts.login ? await getSession('.scratchpad/login.json') : undefined,
