@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.21
+
+### Minor Changes
+
+- 6ba7d90: Add "--disable-web-security" flag when using bypassCSP
+
 ## 1.0.0-next.20
 
 ### Patch Changes
