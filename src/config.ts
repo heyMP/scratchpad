@@ -17,6 +17,7 @@ export type Config = {
   login?: boolean;
   rerouteDir?: string;
   bypassCSP?: boolean;
+  sessionPath?: string;
   playwright?: (page: PlaywrightConfig) => Promise<void>
 }
 

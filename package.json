@@ -29,6 +29,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
+    "test": "npm run build && node --test src/**/*.test.js",
     "release": "npx @changesets/cli publish"
   },
   "devDependencies": {

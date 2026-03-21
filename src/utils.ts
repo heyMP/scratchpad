@@ -1,4 +1,21 @@
 import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import os from 'node:os';
+
+/**
+ * Formats the session path, ensuring it has a .json extension
+ */
+export const formatSessionPath = (path?: string) => {
+  let resolvedPath = path || join(os.homedir(), '.scratchpad', 'login.json');
+  
+  if (resolvedPath === '~') {
+    resolvedPath = os.homedir();
+  } else if (resolvedPath.startsWith('~/') || resolvedPath.startsWith('~\\')) {
+    resolvedPath = join(os.homedir(), resolvedPath.slice(2));
+  }
+
+  return resolvedPath.endsWith('.json') ? resolvedPath : `${resolvedPath}.json`;
+};
 
 /**
  * Helper function to check if a file exists

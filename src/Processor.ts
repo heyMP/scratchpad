@@ -1,7 +1,8 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { build } from 'esbuild';
 import type { Config } from './config.js';
+import { formatSessionPath } from './utils.js';
 
 export class ProcessorChangeEvent extends Event {
   constructor() {
@@ -37,7 +38,8 @@ export class Processor extends EventTarget {
 
   watcher() {
     if (this.opts.login) {
-      if (!fs.existsSync(join(process.cwd(), '.scratchpad', 'login.json'))) {
+      const sessionPath = formatSessionPath(this.opts.sessionPath);
+      if (!fs.existsSync(resolve(process.cwd(), sessionPath))) {
         throw new Error(`Session file not found.`);
       }
     }

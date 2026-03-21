@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import type { Processor } from './Processor.js';
 import { getSession } from './login.js';
 import { rerouteLocal } from './lib/index.js';
+import { formatSessionPath } from './utils.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -32,8 +33,9 @@ export async function browser(processor: Processor) {
     devtools: !!processor.opts.devtools,
     args: processor.opts.bypassCSP ? ['--disable-web-security'] : [],
   });
+  const sessionPath = formatSessionPath(processor.opts.sessionPath);
   const context = await browser.newContext({
-    storageState: processor.opts.login ? await getSession('.scratchpad/login.json') : undefined,
+    storageState: processor.opts.login ? await getSession(sessionPath) : undefined,
     bypassCSP: processor.opts.bypassCSP,
   });
   const page = await context.newPage();
