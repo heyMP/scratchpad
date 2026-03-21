@@ -32,8 +32,9 @@ export async function browser(processor: Processor) {
     devtools: !!processor.opts.devtools,
     args: processor.opts.bypassCSP ? ['--disable-web-security'] : [],
   });
+  const sessionPath = processor.opts.sessionPath || '.scratchpad/login.json';
   const context = await browser.newContext({
-    storageState: processor.opts.login ? await getSession('.scratchpad/login.json') : undefined,
+    storageState: processor.opts.login ? await getSession(sessionPath) : undefined,
     bypassCSP: processor.opts.bypassCSP,
   });
   const page = await context.newPage();

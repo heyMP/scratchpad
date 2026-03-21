@@ -11,6 +11,7 @@ export const runCommand = new Command('run')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .option('--login [boolean]', `use previously saved session from 'generate login' command`)
+  .option('--session-path <path>', 'path to the saved session file')
   .action(async (file, options) => {
     const config = await getConfig();
     const opts = { ...config, ...options};
@@ -24,6 +25,7 @@ export const runCommand = new Command('run')
       login: !!opts['login'],
       rerouteDir: opts['rerouteDir'],
       bypassCSP: opts['bypassCSP'],
+      sessionPath: typeof opts['sessionPath'] === 'string' ? opts['sessionPath'] : undefined,
       file: file
     });
     browser(processor);

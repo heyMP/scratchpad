@@ -37,7 +37,8 @@ export class Processor extends EventTarget {
 
   watcher() {
     if (this.opts.login) {
-      if (!fs.existsSync(join(process.cwd(), '.scratchpad', 'login.json'))) {
+      const sessionPath = this.opts.sessionPath || join('.scratchpad', 'login.json');
+      if (!fs.existsSync(join(process.cwd(), sessionPath))) {
         throw new Error(`Session file not found.`);
       }
     }

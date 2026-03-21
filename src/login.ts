@@ -21,7 +21,8 @@ export async function login(config: Config) {
   }
 
   page.on('close', async () => {
-    await page.context().storageState({ path: '.scratchpad/login.json' });
+    const sessionPath = config.sessionPath || '.scratchpad/login.json';
+    await page.context().storageState({ path: sessionPath });
     await browser.close();
     console.log(`\x1b[33m 👻 Session saved\x1b[0m`);
   });

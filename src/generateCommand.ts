@@ -56,13 +56,15 @@ const documentCommand = new Command('document')
 
 const loginCommand = new Command('login')
   .description('Launches a session and saves the browser session in a local file on termination.')
-  .action(async (...options) => {
+  .option('--session-path <path>', 'path to save the browser session file')
+  .action(async (options) => {
     const config = await getConfig();
-    const opts = { ...config, options };
+    const opts = { ...config, ...options };
     login({
       // type narrow the options
       devtools: !!opts['devtools'],
       url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
+      sessionPath: typeof opts['sessionPath'] === 'string' ? opts['sessionPath'] : undefined,
     });
   });
 
