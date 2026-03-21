@@ -16,23 +16,46 @@ Note: This is still in development. Use the `next` tag until 1.0 release is read
 ## Commands
 
 ```bash
-Usage: @heymp/scratchpad@next run <file> [options]
+Usage: @heymp/scratchpad@next [options] [command]
 
 Run TS/JS snippets in a locally
 
 Options:
-  -V, --version         output the version number
-  -h, --help            display help for command
+  -V, --version          output the version number
+  -h, --help             display help for command
 
 Commands:
-  run [options] <file>  Execute a file in a browser.
-  generate              Generate files from templates or remote data.
-  help [command]        display help for command
+  run [options] [file]   Execute a file in a browser.
+  generate               Generate files from templates.
+  clone [options] <url>  Generates a local copy of a file from a url.
+  help [command]         display help for command
+
+run options:
+  --headless [boolean]   specify running the browser in headless mode.
+  --devtools [boolean]   open browser devtools automatically.
+  --ts-write [boolean]   write the js output of the target ts file.
+  --url [string]         specify a specific url to execute the code in.
+  --login [boolean]      use previously saved session from 'generate login' command
+  --session-path <path>  path to the saved session file
 ```
 
 ## Config
 
 An alternative to using the CLI flags, you can create `scratchpad.config.js`.
+
+### Available Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `headless` | `boolean` | Specify running the browser in headless mode. |
+| `devtools` | `boolean` | Open browser devtools automatically. |
+| `tsWrite` | `boolean` | Write the JS output of the target TS file to disk. |
+| `url` | `string` | Specify a specific URL to execute the code in. |
+| `login` | `boolean` | Use previously saved session from `generate login` command. |
+| `sessionPath` | `string` | Custom path to read/save the browser session file. |
+| `bypassCSP` | `boolean` | Bypass Content Security Policy (CSP) when running code. |
+| `rerouteDir` | `string` | The default directory to use for rerouting requests to local files. |
+| `playwright` | `function` | Async method for altering the Playwright runtime. |
 
 ```js
 export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
@@ -80,16 +103,23 @@ export default defineConfig({
 
 #### Save browser session
 
-Using Playwright, you can launch a new session with the `generate login` command. This will launch a new browser session where you can authenticate to a website. After you have authenticated you can close the browser session. You session will be saved to a local file `.scratchpad/login.json`.
+Using Playwright, you can launch a new session with the `generate login` command. This will launch a new browser session where you can authenticate to a website. After you have authenticated you can close the browser session. Your session will be saved to a local file `.scratchpad/login.json` by default.
 
 ```bash
-npx @heymp/scratchpad@next login
+npx @heymp/scratchpad@next generate login
 ```
 
-You can then reuse the session by using the `login` option when using the `run` command.
+You can then reuse the session by using the `--login` option when using the `run` command.
 
 ```bash
 npx @heymp/scratchpad@next run --login
+```
+
+To specify a custom path to save or load the session, you can use the `--session-path <path>` option with both the `generate login` and `run` commands.
+
+```bash
+npx @heymp/scratchpad@next generate login --session-path ./custom-session.json
+npx @heymp/scratchpad@next run --login --session-path ./custom-session.json
 ```
 
 #### Reroute Local Files
@@ -221,12 +251,25 @@ export default Scratchpad.defineConfig({
 });
 ```
 
+## Clone command
+
+The `clone` command generates a local copy of a file or document from a given URL.
+
+```bash
+npx @heymp/scratchpad@next clone <url> [--dir <string>]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--dir <string>` | Source directory where you want to save the document. Overrides `rerouteDir` from `scratchpad.config.js` if set. |
+
 ## Generate files
 
 | Method | Description                                | Example   |
 |--------|--------------------------------------------|-----------|
+| config | Generates an example config file. | `npx @heymp/scratchpad@next generate config` |
 | document | Fetch HTML source of url and save it to a local file. This is helpful when using the `rerouteDocument` command. | `npx @heymp/scratchpad@next generate document https://www.example.com pages ` |
-| login  | Launch a new browser that saves your session so it can be reused. | `npx @heymp/scratchpad@next generate login` |
+| login  | Launch a new browser that saves your session so it can be reused. Supports `--session-path <path>` to save the session to a custom file. | `npx @heymp/scratchpad@next generate login` |
 
 ## Default exposed functions 
 
@@ -293,7 +336,15 @@ export default defineConfig({
 ## Typescript
 
 Scratchpad also has out of the box support for Typescript. Any file that ends with `.ts` will
-be first transpiled by `esbuild` command. While you can execute typescript files using the
+be first transpiled by `esbuild` command.
+
+To output the transpiled JavaScript file to disk alongside the `.ts` file, you can pass the `--ts-write` option.
+
+```bash
+npx @heymp/scratchpad@next run my-script.ts --ts-write
+```
+
+While you can execute typescript files using the
 `npx @heymp/scratchpad` command, it is reccommended to install the package locally so you can
 import the library typings.
 

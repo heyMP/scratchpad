@@ -1,8 +1,8 @@
 import playwright from 'playwright';
 import util from 'node:util';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { exists } from './utils.js';
+import { join, resolve } from 'node:path';
+import { exists, formatSessionPath } from './utils.js';
 import type { Config } from './config.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -21,7 +21,7 @@ export async function login(config: Config) {
   }
 
   page.on('close', async () => {
-    const sessionPath = config.sessionPath || '.scratchpad/login.json';
+    const sessionPath = formatSessionPath(config.sessionPath);
     await page.context().storageState({ path: sessionPath });
     await browser.close();
     console.log(`\x1b[33m 👻 Session saved\x1b[0m`);
@@ -29,7 +29,7 @@ export async function login(config: Config) {
 }
 
 export async function getSession(path: string): Promise<string | undefined> {
-  const filePath = join(process.cwd(), path);
+  const filePath = resolve(process.cwd(), path);
   const fileExists = await exists(filePath);
   if (!fileExists) {
     return undefined;
