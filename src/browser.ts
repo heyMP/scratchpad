@@ -28,10 +28,13 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
 export async function browser(processor: Processor) {
   // Get session login session
   // Launch the browser
+  const args: string[] = [];
+  if (processor.opts.bypassCSP) args.push('--disable-web-security');
+  if (processor.opts.devtools) args.push('--auto-open-devtools-for-tabs');
+
   const browser = await playwright['chromium'].launch({
-    headless: !!processor.opts.headless,
-    devtools: !!processor.opts.devtools,
-    args: processor.opts.bypassCSP ? ['--disable-web-security'] : [],
+    headless: processor.opts.devtools ? false : !!processor.opts.headless,
+    args,
   });
   const sessionPath = formatSessionPath(processor.opts.sessionPath);
   const context = await browser.newContext({

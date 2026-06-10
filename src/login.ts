@@ -10,7 +10,7 @@ util.inspect.defaultOptions.depth = null;
 export async function login(config: Config) {
   const browser = await playwright['chromium'].launch({
     headless: false,
-    devtools: !!config.devtools
+    args: config.devtools ? ['--auto-open-devtools-for-tabs'] : [],
   });
   const context = await browser.newContext();
   const page = await context.newPage();
