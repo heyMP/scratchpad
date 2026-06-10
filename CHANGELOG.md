@@ -1,5 +1,25 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.22
+
+### Patch Changes
+
+- 7fd8f67: Fix devtools launch option for newer versions of Playwright by using --auto-open-devtools-for-tabs arg instead of the removed devtools property on LaunchOptions.
+- fc2a03a: Adding Launch options overrides
+
+  The `launchOptions` field passes options directly through to Playwright's [`chromium.launch()`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch). This is useful for setting custom browser args, slow motion, or any other Playwright launch option without scratchpad needing to expose each one individually.
+
+  ```js
+  export default {
+    url: "https://example.com",
+    launchOptions: {
+      args: ["--remote-debugging-port=9222", "--remote-allow-origins=*"],
+    },
+  };
+  ```
+
+  The top-level `headless` and `devtools` fields continue to work as shortcuts. When both a top-level shortcut and `launchOptions` set the same value, the top-level shortcut wins. The `args` array from `launchOptions` is concatenated with any args added by other config fields (e.g. `bypassCSP`), so neither set is lost.
+
 ## 1.0.0-next.21
 
 ### Minor Changes
