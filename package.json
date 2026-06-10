@@ -27,17 +27,25 @@
     "playwright": "^1.44.1"
   },
   "scripts": {
+    "setup": "yarn install --ignore-scripts && yarn allow-scripts",
+    "preinstall": "echo 'Do not run yarn install directly. Use: yarn setup' && exit 1",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "test": "npm run build && node --test src/**/*.test.js",
-    "release": "npx @changesets/cli publish"
+    "test": "yarn build && node --test src/**/*.test.js",
+    "release": "yarn changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
+    "@lavamoat/allow-scripts": "^5.0.2",
     "@types/node": "^22.1.0",
     "typescript": "^5.5.4"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "esbuild#0.25.10": true
+    }
   }
 }

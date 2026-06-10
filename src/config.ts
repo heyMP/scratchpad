@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import type { Page, BrowserContext, Browser } from 'playwright';
+import type { Page, BrowserContext, Browser, LaunchOptions } from 'playwright';
 import { build } from 'esbuild';
 import { exists, esm } from './utils.js';
 
@@ -18,6 +18,7 @@ export type Config = {
   rerouteDir?: string;
   bypassCSP?: boolean;
   sessionPath?: string;
+  launchOptions?: LaunchOptions;
   playwright?: (page: PlaywrightConfig) => Promise<void>
 }
 
