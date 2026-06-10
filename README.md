@@ -55,6 +55,7 @@ An alternative to using the CLI flags, you can create `scratchpad.config.js`.
 | `sessionPath` | `string` | Custom path to read/save the browser session file. |
 | `bypassCSP` | `boolean` | Bypass Content Security Policy (CSP) when running code. |
 | `rerouteDir` | `string` | The default directory to use for rerouting requests to local files. |
+| `launchOptions` | `LaunchOptions` | Playwright [launch options](https://playwright.dev/docs/api/class-browsertype#browser-type-launch) passed directly to `chromium.launch()`. |
 | `playwright` | `function` | Async method for altering the Playwright runtime. |
 
 ```js
@@ -64,6 +65,24 @@ export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
   headless: true,
 });
 ```
+
+### Launch Options
+
+The `launchOptions` field passes options directly through to Playwright's [`chromium.launch()`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch). This is useful for setting custom browser args, slow motion, or any other Playwright launch option without scratchpad needing to expose each one individually.
+
+```js
+export default ({
+  url: 'https://example.com',
+  launchOptions: {
+    args: [
+      '--remote-debugging-port=9222',
+      '--remote-allow-origins=*',
+    ],
+  },
+});
+```
+
+The top-level `headless` and `devtools` fields continue to work as shortcuts. When both a top-level shortcut and `launchOptions` set the same value, the top-level shortcut wins. The `args` array from `launchOptions` is concatenated with any args added by other config fields (e.g. `bypassCSP`), so neither set is lost.
 
 ### Playwright runtime
 

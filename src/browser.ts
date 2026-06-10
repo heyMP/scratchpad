@@ -1,8 +1,9 @@
 import playwright from 'playwright';
+import type { LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
 import fs from 'node:fs/promises';
-import type { Processor } from './Processor.js';
+import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession } from './login.js';
 import { rerouteLocal } from './lib/index.js';
 import { formatSessionPath } from './utils.js';
@@ -25,17 +26,25 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
   return fs.readFile(...args);
 }
 
+export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
+  const bypassCSPArgs = opts.bypassCSP ? ['--disable-web-security'] : [];
+  const devtoolsArgs = opts.devtools ? ['--auto-open-devtools-for-tabs'] : [];
+  const headless = opts.devtools
+    ? false
+    : opts.headless !== undefined
+      ? !!opts.headless
+      : opts.launchOptions?.headless;
+  return {
+    ...opts.launchOptions,
+    ...(headless !== undefined && { headless }),
+    args: [...bypassCSPArgs, ...devtoolsArgs, ...(opts.launchOptions?.args ?? [])],
+  };
+}
+
 export async function browser(processor: Processor) {
   // Get session login session
   // Launch the browser
-  const args: string[] = [];
-  if (processor.opts.bypassCSP) args.push('--disable-web-security');
-  if (processor.opts.devtools) args.push('--auto-open-devtools-for-tabs');
-
-  const browser = await playwright['chromium'].launch({
-    headless: processor.opts.devtools ? false : !!processor.opts.headless,
-    args,
-  });
+  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts));
   const sessionPath = formatSessionPath(processor.opts.sessionPath);
   const context = await browser.newContext({
     storageState: processor.opts.login ? await getSession(sessionPath) : undefined,
