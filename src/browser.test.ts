@@ -7,7 +7,6 @@ describe('buildLaunchOptions', () => {
     const result = buildLaunchOptions({});
     assert.deepStrictEqual(result.args, []);
     assert.strictEqual(result.headless, undefined);
-    assert.strictEqual(result.devtools, undefined);
   });
 
   test('respects launchOptions.headless when top-level headless is not set', () => {
@@ -30,24 +29,15 @@ describe('buildLaunchOptions', () => {
     assert.strictEqual(result.headless, false);
   });
 
-  test('respects launchOptions.devtools when top-level devtools is not set', () => {
-    const result = buildLaunchOptions({
-      launchOptions: { devtools: true },
-    });
-    assert.strictEqual(result.devtools, true);
+  test('devtools adds --auto-open-devtools-for-tabs and forces headless false', () => {
+    const result = buildLaunchOptions({ devtools: true, headless: true });
+    assert.ok(result.args!.includes('--auto-open-devtools-for-tabs'));
+    assert.strictEqual(result.headless, false);
   });
 
-  test('respects top-level devtools when launchOptions.devtools is not set', () => {
-    const result = buildLaunchOptions({ devtools: true });
-    assert.strictEqual(result.devtools, true);
-  });
-
-  test('top-level devtools wins over launchOptions.devtools', () => {
-    const result = buildLaunchOptions({
-      devtools: false,
-      launchOptions: { devtools: true },
-    });
-    assert.strictEqual(result.devtools, false);
+  test('devtools false does not add --auto-open-devtools-for-tabs', () => {
+    const result = buildLaunchOptions({ devtools: false });
+    assert.ok(!result.args!.includes('--auto-open-devtools-for-tabs'));
   });
 
   test('bypassCSP adds --disable-web-security to args', () => {

@@ -28,11 +28,16 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
 
 export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
   const bypassCSPArgs = opts.bypassCSP ? ['--disable-web-security'] : [];
+  const devtoolsArgs = opts.devtools ? ['--auto-open-devtools-for-tabs'] : [];
+  const headless = opts.devtools
+    ? false
+    : opts.headless !== undefined
+      ? !!opts.headless
+      : opts.launchOptions?.headless;
   return {
     ...opts.launchOptions,
-    ...(opts.headless !== undefined && { headless: !!opts.headless }),
-    ...(opts.devtools !== undefined && { devtools: !!opts.devtools }),
-    args: [...bypassCSPArgs, ...(opts.launchOptions?.args ?? [])],
+    ...(headless !== undefined && { headless }),
+    args: [...bypassCSPArgs, ...devtoolsArgs, ...(opts.launchOptions?.args ?? [])],
   };
 }
 

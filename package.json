@@ -31,7 +31,7 @@
     "preinstall": "echo 'Do not run yarn install directly. Use: yarn setup' && exit 1",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "test": "yarn build && node --test src/**/*.test.js",
+    "test": "yarn build && node --test src/*.test.js",
     "release": "yarn changeset publish"
   },
   "devDependencies": {
