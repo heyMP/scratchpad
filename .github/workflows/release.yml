@@ -21,7 +21,7 @@ jobs:
           node-version: 20.x
 
       - name: Install Dependencies
-        run: yarn
+        run: yarn setup
 
       - name: Build TS
         run: yarn run build

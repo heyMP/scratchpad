@@ -17,8 +17,8 @@ export const runCommand = new Command('run')
     const opts = { ...config, ...options};
     const processor = new Processor({
       // type narrow the options
-      headless: !!opts['headless'],
-      devtools: !!opts['devtools'],
+      ...(opts['headless'] !== undefined && { headless: !!opts['headless'] }),
+      ...(opts['devtools'] !== undefined && { devtools: !!opts['devtools'] }),
       tsWrite: !!opts['tsWrite'],
       url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
       playwright: opts['playwright'],
@@ -26,6 +26,7 @@ export const runCommand = new Command('run')
       rerouteDir: opts['rerouteDir'],
       bypassCSP: opts['bypassCSP'],
       sessionPath: typeof opts['sessionPath'] === 'string' ? opts['sessionPath'] : undefined,
+      launchOptions: opts['launchOptions'],
       file: file
     });
     browser(processor);

@@ -1,8 +1,9 @@
 import playwright from 'playwright';
+import type { LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
 import fs from 'node:fs/promises';
-import type { Processor } from './Processor.js';
+import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession } from './login.js';
 import { rerouteLocal } from './lib/index.js';
 import { formatSessionPath } from './utils.js';
@@ -25,14 +26,20 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
   return fs.readFile(...args);
 }
 
+export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
+  const bypassCSPArgs = opts.bypassCSP ? ['--disable-web-security'] : [];
+  return {
+    ...opts.launchOptions,
+    ...(opts.headless !== undefined && { headless: !!opts.headless }),
+    ...(opts.devtools !== undefined && { devtools: !!opts.devtools }),
+    args: [...bypassCSPArgs, ...(opts.launchOptions?.args ?? [])],
+  };
+}
+
 export async function browser(processor: Processor) {
   // Get session login session
   // Launch the browser
-  const browser = await playwright['chromium'].launch({
-    headless: !!processor.opts.headless,
-    devtools: !!processor.opts.devtools,
-    args: processor.opts.bypassCSP ? ['--disable-web-security'] : [],
-  });
+  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts));
   const sessionPath = formatSessionPath(processor.opts.sessionPath);
   const context = await browser.newContext({
     storageState: processor.opts.login ? await getSession(sessionPath) : undefined,
