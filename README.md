@@ -143,7 +143,7 @@ npx @heymp/scratchpad@next session login --name work
 npx @heymp/scratchpad@next run --session work ./my-test-file.js
 ```
 
-To pick a session interactively:
+To pick a session interactively (arrow keys + Enter):
 
 ```bash
 npx @heymp/scratchpad@next run --session ./my-test-file.js
@@ -156,6 +156,8 @@ npx @heymp/scratchpad@next session list
 npx @heymp/scratchpad@next session rename work personal
 npx @heymp/scratchpad@next session delete work
 ```
+
+Omit the session name on `delete` or `rename` to pick from an arrow-key list. Delete prompts for confirmation before removing a session.
 
 You can also set a default session in `scratchpad.config.js`:
 
@@ -314,8 +316,8 @@ npx @heymp/scratchpad@next clone <url> [--dir <string>]
 |------------|-------------|---------|
 | login | Launch a browser and save the session under a name when you close it. | `npx @heymp/scratchpad@next session login --name work` |
 | list | List saved browser sessions. | `npx @heymp/scratchpad@next session list` |
-| delete | Delete a saved browser session. | `npx @heymp/scratchpad@next session delete work` |
-| rename | Rename a saved browser session. | `npx @heymp/scratchpad@next session rename work personal` |
+| delete | Delete a saved browser session. Omit the name to pick one interactively. | `npx @heymp/scratchpad@next session delete work` |
+| rename | Rename a saved browser session. Omit names to pick and rename interactively. | `npx @heymp/scratchpad@next session rename work personal` |
 
 ## Generate files
 

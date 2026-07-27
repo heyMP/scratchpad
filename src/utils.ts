@@ -3,13 +3,43 @@ import { join } from 'node:path';
 import os from 'node:os';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
+import { cancel, confirm, isCancel, select, text } from '@clack/prompts';
 
 const SESSION_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+export class OperationCancelledError extends Error {
+  constructor(message = 'Operation cancelled.') {
+    super(message);
+    this.name = 'OperationCancelledError';
+  }
+}
 
 export type SessionInfo = {
   name: string;
   savedAt: Date;
 };
+
+export type SessionSelectOption = {
+  value: string;
+  label: string;
+  hint: string;
+};
+
+function formatSessionSavedDate(savedAt: Date) {
+  return savedAt.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function formatSessionOptions(sessions: SessionInfo[]): SessionSelectOption[] {
+  return sessions.map((session) => ({
+    value: session.name,
+    label: session.name,
+    hint: `saved ${formatSessionSavedDate(session.savedAt)}`,
+  }));
+}
 
 /**
  * Helper function to check if a file exists
@@ -80,7 +110,7 @@ export async function generateDefaultSessionName() {
   return `${base}-${counter}`;
 }
 
-export async function promptForSessionName(defaultName: string) {
+async function promptForSessionNameWithReadline(defaultName: string) {
   const rl = readline.createInterface({ input: stdin, output: stdout });
 
   try {
@@ -99,19 +129,53 @@ export async function promptForSessionName(defaultName: string) {
   }
 }
 
-export async function pickSession() {
-  const sessions = await listSessions();
-  if (sessions.length === 0) {
-    throw new Error('No saved sessions found. Run `scratchpad session login` to create one.');
+export async function promptForSessionName(defaultName: string) {
+  if (!stdin.isTTY) {
+    return promptForSessionNameWithReadline(defaultName);
   }
 
+  const name = await text({
+    message: 'Session name',
+    defaultValue: defaultName,
+    validate: (value) => validateSessionName(value || defaultName),
+  });
+
+  if (isCancel(name)) {
+    cancel('Operation cancelled.');
+    throw new OperationCancelledError();
+  }
+
+  return name || defaultName;
+}
+
+async function confirmActionWithReadline(message: string) {
+  const rl = readline.createInterface({ input: stdin, output: stdout });
+
+  try {
+    const answer = await rl.question(`${message} [y/N]: `);
+    return answer.trim().toLowerCase() === 'y';
+  } finally {
+    rl.close();
+  }
+}
+
+export async function confirmAction(message: string) {
+  if (!stdin.isTTY) {
+    return confirmActionWithReadline(message);
+  }
+
+  const result = await confirm({ message });
+  if (isCancel(result)) {
+    return false;
+  }
+
+  return result;
+}
+
+async function pickSessionWithReadline(sessions: SessionInfo[]) {
   console.log('\nAvailable sessions:');
   sessions.forEach((session, index) => {
-    const saved = session.savedAt.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const saved = formatSessionSavedDate(session.savedAt);
     console.log(`  ${index + 1}. ${session.name} (saved ${saved})`);
   });
   console.log('');
@@ -131,6 +195,33 @@ export async function pickSession() {
   } finally {
     rl.close();
   }
+}
+
+async function pickSessionWithClack(sessions: SessionInfo[]) {
+  const choice = await select({
+    message: 'Select a session',
+    options: formatSessionOptions(sessions),
+  });
+
+  if (isCancel(choice)) {
+    cancel('Session selection cancelled.');
+    throw new OperationCancelledError();
+  }
+
+  return choice;
+}
+
+export async function pickSession() {
+  const sessions = await listSessions();
+  if (sessions.length === 0) {
+    throw new Error('No saved sessions found. Run `scratchpad session login` to create one.');
+  }
+
+  if (stdin.isTTY) {
+    return pickSessionWithClack(sessions);
+  }
+
+  return pickSessionWithReadline(sessions);
 }
 
 /**
