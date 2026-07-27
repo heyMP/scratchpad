@@ -1,10 +1,11 @@
 import playwright from 'playwright';
-import type { LaunchOptions } from 'playwright';
+import type { Browser, BrowserContext, LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor, ProcessorOpts } from './Processor.js';
-import { getSession } from './login.js';
+import { getSession, saveSessionFromContext } from './login.js';
+import { OperationCancelledError } from './utils.js';
 import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -38,6 +39,45 @@ export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
     ...(headless !== undefined && { headless }),
     args: [...bypassCSPArgs, ...devtoolsArgs, ...(opts.launchOptions?.args ?? [])],
   };
+}
+
+function setupKeypressListener(context: BrowserContext, browser: Browser) {
+  if (!process.stdin.isTTY) {
+    return;
+  }
+
+  let saving = false;
+
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  console.log('Press \'s\' to save session');
+
+  process.stdin.on('data', async (key) => {
+    if (key[0] === 3) {
+      await browser.close();
+      process.exit(0);
+    }
+
+    if (key.toString() !== 's' || saving) {
+      return;
+    }
+
+    saving = true;
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+
+    try {
+      await saveSessionFromContext(context);
+    } catch (error) {
+      if (!(error instanceof OperationCancelledError)) {
+        console.error(error);
+      }
+    } finally {
+      saving = false;
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+    }
+  });
 }
 
 export async function browser(processor: Processor) {
@@ -151,5 +191,6 @@ export async function browser(processor: Processor) {
   // Evaluate JavaScript
   processor.addEventListener('change', execute);
   processor.start();
+  setupKeypressListener(context, browser);
 }
 
