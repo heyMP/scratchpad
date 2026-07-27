@@ -6,9 +6,6 @@ import { dirname, join } from 'node:path';
 import { URL } from 'node:url';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert';
-import { login } from './login.js';
-import { getConfig } from './config.js';
-import { Processor } from './Processor.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -54,22 +51,7 @@ const documentCommand = new Command('document')
     await writeFile(filePath, html, 'utf8');
   });
 
-const loginCommand = new Command('login')
-  .description('Launches a session and saves the browser session in a local file on termination.')
-  .option('--session-path <path>', 'path to save the browser session file')
-  .action(async (options) => {
-    const config = await getConfig();
-    const opts = { ...config, ...options };
-    login({
-      // type narrow the options
-      devtools: !!opts['devtools'],
-      url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
-      sessionPath: typeof opts['sessionPath'] === 'string' ? opts['sessionPath'] : undefined,
-    });
-  });
-
 export const generateCommand = new Command('generate')
   .description('Generate files from templates.')
   .addCommand(configCommand)
-  .addCommand(documentCommand)
-  .addCommand(loginCommand);
+  .addCommand(documentCommand);

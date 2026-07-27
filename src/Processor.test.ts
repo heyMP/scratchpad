@@ -2,54 +2,37 @@ import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import { join } from 'node:path';
+import os from 'node:os';
 import { Processor } from './Processor.js';
+import { getSessionPath } from './utils.js';
 
-describe('Processor Session Path', () => {
-  const customSessionPath = 'custom-test-login.json';
-  const customSessionPathAbsolute = join(process.cwd(), customSessionPath);
+describe('Processor Session', () => {
+  const sessionName = 'test-session';
+  const sessionPath = getSessionPath(sessionName);
 
   before(() => {
-    // Create a dummy session file for success cases
-    fs.writeFileSync(customSessionPathAbsolute, '{}');
+    fs.mkdirSync(join(os.homedir(), '.scratchpad', 'sessions'), { recursive: true });
+    fs.writeFileSync(sessionPath, '{}');
   });
 
   after(() => {
-    // Clean up
-    if (fs.existsSync(customSessionPathAbsolute)) {
-      fs.unlinkSync(customSessionPathAbsolute);
+    if (fs.existsSync(sessionPath)) {
+      fs.unlinkSync(sessionPath);
     }
   });
 
-  test('throws error when custom session file is not found', () => {
+  test('throws error when session is not found', () => {
     assert.throws(
       () => {
-        new Processor({ login: true, sessionPath: 'non-existent-file.json' });
+        new Processor({ session: 'non-existent-session' });
       },
-      /Session file not found\./
+      /Session "non-existent-session" not found\./
     );
   });
 
-  test('does not throw when custom session file exists', () => {
+  test('does not throw when session exists', () => {
     assert.doesNotThrow(() => {
-      // By not passing a file prop, it avoids throwing the subsequent 'file not found' error
-      new Processor({ login: true, sessionPath: customSessionPath });
+      new Processor({ session: sessionName });
     });
-  });
-
-  test('adds .json to session path if missing', () => {
-    assert.doesNotThrow(() => {
-      // The before() creates custom-test-login.json
-      // Here we pass it without the .json extension, it should resolve to custom-test-login.json and not throw
-      new Processor({ login: true, sessionPath: 'custom-test-login' });
-    });
-  });
-
-  test('resolves ~ to homedir', () => {
-    assert.throws(
-      () => {
-        new Processor({ login: true, sessionPath: '~/some-non-existent-test-file.json' });
-      },
-      /Session file not found\./
-    );
   });
 });

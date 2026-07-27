@@ -6,7 +6,6 @@ import fs from 'node:fs/promises';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession } from './login.js';
 import { rerouteLocal } from './lib/index.js';
-import { formatSessionPath } from './utils.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
 
@@ -45,9 +44,8 @@ export async function browser(processor: Processor) {
   // Get session login session
   // Launch the browser
   const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts));
-  const sessionPath = formatSessionPath(processor.opts.sessionPath);
   const context = await browser.newContext({
-    storageState: processor.opts.login ? await getSession(sessionPath) : undefined,
+    storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,
     bypassCSP: processor.opts.bypassCSP,
   });
   const page = await context.newPage();

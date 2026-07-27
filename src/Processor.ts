@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { build } from 'esbuild';
 import type { Config } from './config.js';
-import { formatSessionPath } from './utils.js';
+import { getSessionPath } from './utils.js';
 
 export class ProcessorChangeEvent extends Event {
   constructor() {
@@ -10,8 +10,9 @@ export class ProcessorChangeEvent extends Event {
   }
 }
 
-export type ProcessorOpts = Config & {
+export type ProcessorOpts = Omit<Config, 'session' | 'sessionName'> & {
   file?: string;
+  session?: string;
 }
 
 /**
@@ -37,10 +38,10 @@ export class Processor extends EventTarget {
   }
 
   watcher() {
-    if (this.opts.login) {
-      const sessionPath = formatSessionPath(this.opts.sessionPath);
-      if (!fs.existsSync(resolve(process.cwd(), sessionPath))) {
-        throw new Error(`Session file not found.`);
+    if (this.opts.session) {
+      const sessionPath = getSessionPath(this.opts.session);
+      if (!fs.existsSync(sessionPath)) {
+        throw new Error(`Session "${this.opts.session}" not found.`);
       }
     }
 

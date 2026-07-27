@@ -14,10 +14,10 @@ export type Config = {
   devtools?: boolean;
   tsWrite?: boolean;
   url?: string;
-  login?: boolean;
+  session?: string | true;
+  sessionName?: string;
   rerouteDir?: string;
   bypassCSP?: boolean;
-  sessionPath?: string;
   launchOptions?: LaunchOptions;
   playwright?: (page: PlaywrightConfig) => Promise<void>
 }
