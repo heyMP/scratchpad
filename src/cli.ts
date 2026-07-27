@@ -7,6 +7,7 @@ import { Command } from '@commander-js/extra-typings';
 import { runCommand } from './runCommand.js';
 import { generateCommand } from './generateCommand.js';
 import { cloneCommand } from './cloneCommand.js';
+import { sessionCommand } from './sessionCommand.js';
 
 // Get pkg info
 const __filename = fileURLToPath(import.meta.url);
@@ -20,4 +21,5 @@ program
 program.addCommand(runCommand);
 program.addCommand(generateCommand);
 program.addCommand(cloneCommand);
+program.addCommand(sessionCommand);
 program.parse(process.argv);

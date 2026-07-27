@@ -28,6 +28,7 @@ Commands:
   run [options] [file]   Execute a file in a browser.
   generate               Generate files from templates.
   clone [options] <url>  Generates a local copy of a file from a url.
+  session                Manage saved browser sessions.
   help [command]         display help for command
 
 run options:
@@ -35,8 +36,7 @@ run options:
   --devtools [boolean]   open browser devtools automatically.
   --ts-write [boolean]   write the js output of the target ts file.
   --url [string]         specify a specific url to execute the code in.
-  --login [boolean]      use previously saved session from 'generate login' command
-  --session-path <path>  path to the saved session file
+  --session [name]       use a saved browser session by name, or pick one interactively
 ```
 
 ## Config
@@ -51,8 +51,7 @@ An alternative to using the CLI flags, you can create `scratchpad.config.js`.
 | `devtools` | `boolean` | Open browser devtools automatically. |
 | `tsWrite` | `boolean` | Write the JS output of the target TS file to disk. |
 | `url` | `string` | Specify a specific URL to execute the code in. |
-| `login` | `boolean` | Use previously saved session from `generate login` command. |
-| `sessionPath` | `string` | Custom path to read/save the browser session file. |
+| `session` | `string \| true` | Use a saved browser session by name, or set to `true` to pick one interactively. |
 | `bypassCSP` | `boolean` | Bypass Content Security Policy (CSP) when running code. |
 | `rerouteDir` | `string` | The default directory to use for rerouting requests to local files. |
 | `launchOptions` | `LaunchOptions` | Playwright [launch options](https://playwright.dev/docs/api/class-browsertype#browser-type-launch) passed directly to `chromium.launch()`. |
@@ -122,24 +121,65 @@ export default defineConfig({
 
 #### Save browser session
 
-Using Playwright, you can launch a new session with the `generate login` command. This will launch a new browser session where you can authenticate to a website. After you have authenticated you can close the browser session. Your session will be saved to a local file `.scratchpad/login.json` by default.
+Scratchpad can save and reuse browser sessions (cookies, local storage, etc.) so you can authenticate once and run scripts against a logged-in site. Sessions are stored as named files in `~/.scratchpad/sessions/` and can be used from any project directory.
+
+**Save a session**
 
 ```bash
-npx @heymp/scratchpad@next generate login
+npx @heymp/scratchpad@next session login
 ```
 
-You can then reuse the session by using the `--login` option when using the `run` command.
+This prompts for a session name (default: `session-YYYY-MM-DD`), then launches a browser where you can sign in. When you close the browser, scratchpad saves the session.
+
+To skip the name prompt:
 
 ```bash
-npx @heymp/scratchpad@next run --login
+npx @heymp/scratchpad@next session login --name work
 ```
 
-To specify a custom path to save or load the session, you can use the `--session-path <path>` option with both the `generate login` and `run` commands.
+**Use a saved session**
 
 ```bash
-npx @heymp/scratchpad@next generate login --session-path ./custom-session.json
-npx @heymp/scratchpad@next run --login --session-path ./custom-session.json
+npx @heymp/scratchpad@next run --session work ./my-test-file.js
 ```
+
+To pick a session interactively (arrow keys + Enter):
+
+```bash
+npx @heymp/scratchpad@next run --session ./my-test-file.js
+```
+
+**Manage sessions**
+
+```bash
+npx @heymp/scratchpad@next session list
+npx @heymp/scratchpad@next session rename work personal
+npx @heymp/scratchpad@next session delete work
+```
+
+Omit the session name on `delete` or `rename` to pick from an arrow-key list. Delete prompts for confirmation before removing a session.
+
+You can also set a default session in `scratchpad.config.js`:
+
+```js
+export default defineConfig({
+  session: 'work',
+});
+```
+
+Or set `session: true` to always show the interactive picker when running.
+
+**Migrating from older versions**
+
+If you previously saved sessions with `generate login`, your session file may be at `.scratchpad/login.json` in your project directory. Move it to a named session under the new location:
+
+```bash
+mkdir -p ~/.scratchpad/sessions
+cp .scratchpad/login.json ~/.scratchpad/sessions/default.json
+npx @heymp/scratchpad@next run --session default ./my-test-file.js
+```
+
+🚨 It is highly recommended to add the `~/.scratchpad` directory to your `.gitignore` file. Never commit or share your session files!
 
 #### Reroute Local Files
 
@@ -179,8 +219,6 @@ export default defineConfig({
   }
 });
 ```
-
-🚨 It is highly recommended to add the `.scratchpad` directory to your .gitignore file. Never commit or share your session `login.json` file!
 
 #### Reroute Documents [deprecated]
 
@@ -282,13 +320,21 @@ npx @heymp/scratchpad@next clone <url> [--dir <string>]
 |--------|-------------|
 | `--dir <string>` | Source directory where you want to save the document. Overrides `rerouteDir` from `scratchpad.config.js` if set. |
 
+## Session command
+
+| Subcommand | Description | Example |
+|------------|-------------|---------|
+| login | Launch a browser and save the session under a name when you close it. | `npx @heymp/scratchpad@next session login --name work` |
+| list | List saved browser sessions. | `npx @heymp/scratchpad@next session list` |
+| delete | Delete a saved browser session. Omit the name to pick one interactively. | `npx @heymp/scratchpad@next session delete work` |
+| rename | Rename a saved browser session. Omit names to pick and rename interactively. | `npx @heymp/scratchpad@next session rename work personal` |
+
 ## Generate files
 
 | Method | Description                                | Example   |
 |--------|--------------------------------------------|-----------|
 | config | Generates an example config file. | `npx @heymp/scratchpad@next generate config` |
 | document | Fetch HTML source of url and save it to a local file. This is helpful when using the `rerouteDocument` command. | `npx @heymp/scratchpad@next generate document https://www.example.com pages ` |
-| login  | Launch a new browser that saves your session so it can be reused. Supports `--session-path <path>` to save the session to a custom file. | `npx @heymp/scratchpad@next generate login` |
 
 ## Default exposed functions 
 
