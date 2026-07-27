@@ -2,7 +2,7 @@ import { Command } from '@commander-js/extra-typings';
 import { getConfig } from './config.js';
 import { Processor } from './Processor.js';
 import { browser } from './browser.js';
-import { pickSession } from './utils.js';
+import { parseBooleanOption, pickSession } from './utils.js';
 
 async function resolveSessionName(
   cliSession: string | true | undefined,
@@ -37,9 +37,9 @@ export const runCommand = new Command('run')
     const session = await resolveSessionName(opts['session'], config.session);
     const processor = new Processor({
       // type narrow the options
-      ...(opts['headless'] !== undefined && { headless: !!opts['headless'] }),
-      ...(opts['devtools'] !== undefined && { devtools: !!opts['devtools'] }),
-      tsWrite: !!opts['tsWrite'],
+      ...(opts['headless'] !== undefined && { headless: parseBooleanOption(opts['headless']) }),
+      ...(opts['devtools'] !== undefined && { devtools: parseBooleanOption(opts['devtools']) }),
+      ...(opts['tsWrite'] !== undefined && { tsWrite: parseBooleanOption(opts['tsWrite']) }),
       url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
       playwright: opts['playwright'],
       session,

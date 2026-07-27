@@ -6,6 +6,24 @@ import { stdin, stdout } from 'node:process';
 import { cancel, confirm, isCancel, select, text } from '@clack/prompts';
 
 const SESSION_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+const TRUE_BOOLEAN_VALUES = new Set(['true', '1', 'yes']);
+const FALSE_BOOLEAN_VALUES = new Set(['false', '0', 'no']);
+
+export function parseBooleanOption(value: boolean | string): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (TRUE_BOOLEAN_VALUES.has(normalized)) {
+    return true;
+  }
+  if (FALSE_BOOLEAN_VALUES.has(normalized)) {
+    return false;
+  }
+
+  throw new Error(`Invalid boolean value: "${value}". Use true or false.`);
+}
 
 export class OperationCancelledError extends Error {
   constructor(message = 'Operation cancelled.') {
@@ -47,6 +65,10 @@ export function formatSessionOptions(sessions: SessionInfo[]): SessionSelectOpti
 export const exists = (path: string) => stat(path).then(() => true, () => false);
 
 export function getSessionsDir() {
+  const customDir = process.env.SCRATCHPAD_SESSIONS_DIR;
+  if (customDir) {
+    return customDir;
+  }
   return join(os.homedir(), '.scratchpad', 'sessions');
 }
 

@@ -129,7 +129,7 @@ Scratchpad can save and reuse browser sessions (cookies, local storage, etc.) so
 npx @heymp/scratchpad@next session login
 ```
 
-This launches a browser where you can sign in. When you close the browser, scratchpad prompts for a session name (default: `session-YYYY-MM-DD`) and saves the session.
+This prompts for a session name (default: `session-YYYY-MM-DD`), then launches a browser where you can sign in. When you close the browser, scratchpad saves the session.
 
 To skip the name prompt:
 
@@ -168,6 +168,16 @@ export default defineConfig({
 ```
 
 Or set `session: true` to always show the interactive picker when running.
+
+**Migrating from older versions**
+
+If you previously saved sessions with `generate login`, your session file may be at `.scratchpad/login.json` in your project directory. Move it to a named session under the new location:
+
+```bash
+mkdir -p ~/.scratchpad/sessions
+cp .scratchpad/login.json ~/.scratchpad/sessions/default.json
+npx @heymp/scratchpad@next run --session default ./my-test-file.js
+```
 
 🚨 It is highly recommended to add the `~/.scratchpad` directory to your `.gitignore` file. Never commit or share your session files!
 

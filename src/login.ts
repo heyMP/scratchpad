@@ -28,6 +28,13 @@ export async function login(config: Config) {
     ?? await promptForSessionName(await generateDefaultSessionName());
   const sessionPath = getSessionPath(sessionName);
 
+  if (await exists(sessionPath)) {
+    const confirmed = await confirmAction(`Session "${sessionName}" already exists. Overwrite?`);
+    if (!confirmed) {
+      throw new OperationCancelledError();
+    }
+  }
+
   const browser = await playwright['chromium'].launch({
     headless: false,
     args: config.devtools ? ['--auto-open-devtools-for-tabs'] : [],
@@ -40,7 +47,7 @@ export async function login(config: Config) {
   }
 
   page.on('close', async () => {
-    await page.context().storageState({ path: sessionPath });
+    await context.storageState({ path: sessionPath });
     await browser.close();
     console.log(`\x1b[33m 👻 Session saved as "${sessionName}"\x1b[0m`);
   });
@@ -49,7 +56,14 @@ export async function login(config: Config) {
 export async function getSession(name: string) {
   const filePath = getSessionPath(name);
   const sessionFile = await readFile(filePath, 'utf8');
-  return sessionFile ? JSON.parse(sessionFile) : undefined;
+  if (!sessionFile) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(sessionFile);
+  } catch {
+    throw new Error(`Session "${name}" is invalid or corrupted.`);
+  }
 }
 
 const CREATE_NEW_SESSION = '__new__';

@@ -1,18 +1,20 @@
-import { test, describe, after } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { saveSessionFromContext } from './login.js';
+import { saveSessionFromContext, getSession } from './login.js';
 import {
   getSessionPath,
   getSessionsDir,
   listSessions,
   OperationCancelledError,
 } from './utils.js';
+import { cleanupTestSessionsDir, createTestSessionsDir, testSessionsEnv } from './testHelpers.js';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
+let sessionsDir: string;
 
 function createMockContext() {
   return {
@@ -46,6 +48,7 @@ function runSaveSessionFromContext(input: string) {
     cwd: testDir,
     input,
     encoding: 'utf8',
+    env: testSessionsEnv(sessionsDir),
   });
 }
 
@@ -59,15 +62,17 @@ async function getSessionSelectionInput(sessionName: string) {
 describe('saveSessionFromContext', () => {
   const newSessionName = 'login-test-new-session';
   const existingSessionName = 'login-test-existing-session';
-  const newSessionPath = getSessionPath(newSessionName);
-  const existingSessionPath = getSessionPath(existingSessionName);
+  let newSessionPath: string;
+  let existingSessionPath: string;
+
+  before(() => {
+    sessionsDir = createTestSessionsDir();
+    newSessionPath = getSessionPath(newSessionName);
+    existingSessionPath = getSessionPath(existingSessionName);
+  });
 
   after(() => {
-    for (const path of [newSessionPath, existingSessionPath]) {
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
-      }
-    }
+    cleanupTestSessionsDir(sessionsDir);
   });
 
   test('creates a new session when user selects create new', async () => {
@@ -131,5 +136,29 @@ describe('saveSessionFromContext', () => {
     const result = runSaveSessionFromContext(`${selection}y\n`);
     assert.strictEqual(result.status, 0);
     assert.ok(result.stdout.trim().endsWith('saved'));
+  });
+});
+
+describe('getSession', () => {
+  let sessionsDir: string;
+
+  before(() => {
+    sessionsDir = createTestSessionsDir();
+  });
+
+  after(() => {
+    cleanupTestSessionsDir(sessionsDir);
+  });
+
+  test('throws when session file contains invalid JSON', async () => {
+    const corruptSessionName = 'corrupt-session';
+    const corruptSessionPath = getSessionPath(corruptSessionName);
+    fs.mkdirSync(getSessionsDir(), { recursive: true });
+    fs.writeFileSync(corruptSessionPath, 'not-json');
+
+    await assert.rejects(
+      () => getSession(corruptSessionName),
+      /Session "corrupt-session" is invalid or corrupted\./,
+    );
   });
 });

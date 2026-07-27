@@ -41,6 +41,13 @@ export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
   };
 }
 
+function restoreStdin() {
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+  }
+}
+
 function setupKeypressListener(context: BrowserContext, browser: Browser) {
   if (!process.stdin.isTTY) {
     return;
@@ -48,12 +55,19 @@ function setupKeypressListener(context: BrowserContext, browser: Browser) {
 
   let saving = false;
 
+  const cleanup = () => {
+    restoreStdin();
+  };
+
+  browser.on('disconnected', cleanup);
+
   process.stdin.setRawMode(true);
   process.stdin.resume();
   console.log('Press \'s\' to save session');
 
   process.stdin.on('data', async (key) => {
     if (key[0] === 3) {
+      cleanup();
       await browser.close();
       process.exit(0);
     }
@@ -74,8 +88,10 @@ function setupKeypressListener(context: BrowserContext, browser: Browser) {
       }
     } finally {
       saving = false;
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(true);
+        process.stdin.resume();
+      }
     }
   });
 }

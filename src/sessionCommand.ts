@@ -12,6 +12,7 @@ import {
   OperationCancelledError,
   pickSession,
   promptForSessionName,
+  parseBooleanOption,
   validateSessionName,
 } from './utils.js';
 
@@ -31,7 +32,7 @@ const loginSubcommand = new Command('login')
       }
 
       await login({
-        devtools: !!opts['devtools'],
+        ...(opts['devtools'] !== undefined && { devtools: parseBooleanOption(opts['devtools']) }),
         url: typeof opts['url'] === 'string' ? opts['url'] : undefined,
         sessionName: typeof opts['name'] === 'string' ? opts['name'] : undefined,
       });

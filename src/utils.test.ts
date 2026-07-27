@@ -11,10 +11,13 @@ import {
   getSessionsDir,
   listSessions,
   OperationCancelledError,
+  parseBooleanOption,
   validateSessionName,
 } from './utils.js';
+import { cleanupTestSessionsDir, createTestSessionsDir } from './testHelpers.js';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
+let sessionsDir: string;
 
 function runConfirmAction(input: string) {
   const script = `
@@ -31,23 +34,33 @@ function runConfirmAction(input: string) {
 
 describe('Session utilities', () => {
   const testSessionName = 'utils-test-session';
-  const testSessionPath = getSessionPath(testSessionName);
+  let testSessionPath: string;
 
   before(() => {
+    sessionsDir = createTestSessionsDir();
+    testSessionPath = getSessionPath(testSessionName);
     fs.mkdirSync(getSessionsDir(), { recursive: true });
     fs.writeFileSync(testSessionPath, '{}');
   });
 
   after(() => {
-    if (fs.existsSync(testSessionPath)) {
-      fs.unlinkSync(testSessionPath);
-    }
+    cleanupTestSessionsDir(sessionsDir);
   });
 
   test('validateSessionName rejects invalid names', () => {
     assert.strictEqual(validateSessionName(''), 'Session name must contain only letters, numbers, hyphens, and underscores.');
     assert.strictEqual(validateSessionName('../escape'), 'Session name must contain only letters, numbers, hyphens, and underscores.');
     assert.strictEqual(validateSessionName('valid-name_1'), undefined);
+  });
+
+  test('parseBooleanOption parses CLI boolean strings', () => {
+    assert.strictEqual(parseBooleanOption(true), true);
+    assert.strictEqual(parseBooleanOption(false), false);
+    assert.strictEqual(parseBooleanOption('true'), true);
+    assert.strictEqual(parseBooleanOption('false'), false);
+    assert.strictEqual(parseBooleanOption('0'), false);
+    assert.strictEqual(parseBooleanOption('1'), true);
+    assert.throws(() => parseBooleanOption('maybe'), /Invalid boolean value/);
   });
 
   test('listSessions includes saved sessions', async () => {

@@ -1,24 +1,24 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
-import { join } from 'node:path';
-import os from 'node:os';
 import { Processor } from './Processor.js';
-import { getSessionPath } from './utils.js';
+import { getSessionPath, getSessionsDir } from './utils.js';
+import { cleanupTestSessionsDir, createTestSessionsDir } from './testHelpers.js';
 
 describe('Processor Session', () => {
   const sessionName = 'test-session';
-  const sessionPath = getSessionPath(sessionName);
+  let sessionsDir: string;
+  let sessionPath: string;
 
   before(() => {
-    fs.mkdirSync(join(os.homedir(), '.scratchpad', 'sessions'), { recursive: true });
+    sessionsDir = createTestSessionsDir();
+    sessionPath = getSessionPath(sessionName);
+    fs.mkdirSync(getSessionsDir(), { recursive: true });
     fs.writeFileSync(sessionPath, '{}');
   });
 
   after(() => {
-    if (fs.existsSync(sessionPath)) {
-      fs.unlinkSync(sessionPath);
-    }
+    cleanupTestSessionsDir(sessionsDir);
   });
 
   test('throws error when session is not found', () => {
