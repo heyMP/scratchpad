@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import os from 'node:os';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { cancel, confirm, isCancel, select, text } from '@clack/prompts';
+import { cancel, confirm, isCancel, multiselect, select, text } from '@clack/prompts';
 
 const SESSION_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
 const TRUE_BOOLEAN_VALUES = new Set(['true', '1', 'yes']);
@@ -244,6 +244,71 @@ export async function pickSession() {
   }
 
   return pickSessionWithReadline(sessions);
+}
+
+async function pickSessionsWithReadline(sessions: SessionInfo[]) {
+  console.log('\nAvailable sessions:');
+  sessions.forEach((session, index) => {
+    const saved = formatSessionSavedDate(session.savedAt);
+    console.log(`  ${index + 1}. ${session.name} (saved ${saved})`);
+  });
+  console.log('');
+
+  const rl = readline.createInterface({ input: stdin, output: stdout });
+
+  try {
+    while (true) {
+      const answer = await rl.question(`Select sessions to delete (comma-separated numbers, e.g. 1,3): `);
+      const selections = answer
+        .split(',')
+        .map((part) => Number.parseInt(part.trim(), 10))
+        .filter((selection) => !Number.isNaN(selection));
+
+      if (selections.length === 0) {
+        console.error('Please enter at least one session number.');
+        continue;
+      }
+
+      const invalid = selections.filter((selection) => selection < 1 || selection > sessions.length);
+      if (invalid.length > 0) {
+        console.error(`Please enter numbers between 1 and ${sessions.length}.`);
+        continue;
+      }
+
+      const uniqueSelections = [...new Set(selections)];
+      return uniqueSelections.map((selection) => sessions[selection - 1].name);
+    }
+  } finally {
+    rl.close();
+  }
+}
+
+async function pickSessionsWithClack(sessions: SessionInfo[]) {
+  const choices = await multiselect({
+    message: 'Select sessions to delete',
+    options: formatSessionOptions(sessions),
+    required: true,
+  });
+
+  if (isCancel(choices)) {
+    cancel('Session selection cancelled.');
+    throw new OperationCancelledError();
+  }
+
+  return choices;
+}
+
+export async function pickSessions() {
+  const sessions = await listSessions();
+  if (sessions.length === 0) {
+    throw new Error('No saved sessions found. Run `scratchpad session login` to create one.');
+  }
+
+  if (stdin.isTTY) {
+    return pickSessionsWithClack(sessions);
+  }
+
+  return pickSessionsWithReadline(sessions);
 }
 
 /**
