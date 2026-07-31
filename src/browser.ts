@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
-import { OperationCancelledError, findAvailableDebugPort } from './utils.js';
+import { OperationCancelledError, findAvailableDebugPort, getCdpWebSocketUrl } from './utils.js';
 import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -26,12 +26,20 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
   return fs.readFile(...args);
 }
 
+function stripDebugLaunchArgs(args: string[]): string[] {
+  return args.filter(
+    (arg) => !arg.startsWith('--remote-debugging-port=') && arg !== '--remote-allow-origins=*',
+  );
+}
+
 export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): LaunchOptions {
   const bypassCSPArgs = opts.bypassCSP ? ['--disable-web-security'] : [];
   const devtoolsArgs = opts.devtools ? ['--auto-open-devtools-for-tabs'] : [];
   const debugArgs = debugPort
     ? [`--remote-debugging-port=${debugPort}`, '--remote-allow-origins=*']
     : [];
+  const launchArgs = opts.launchOptions?.args ?? [];
+  const userArgs = debugPort ? stripDebugLaunchArgs(launchArgs) : launchArgs;
   const headless = opts.devtools
     ? false
     : opts.headless !== undefined
@@ -40,7 +48,7 @@ export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): Lau
   return {
     ...opts.launchOptions,
     ...(headless !== undefined && { headless }),
-    args: [...bypassCSPArgs, ...devtoolsArgs, ...debugArgs, ...(opts.launchOptions?.args ?? [])],
+    args: [...bypassCSPArgs, ...devtoolsArgs, ...debugArgs, ...userArgs],
   };
 }
 
@@ -119,7 +127,12 @@ export async function browser(processor: Processor) {
   const playwrightConfig = processor.opts.playwright;
 
   if (debugPort) {
-    console.log(`CDP endpoint: http://127.0.0.1:${debugPort}`);
+    const wsUrl = await getCdpWebSocketUrl(debugPort);
+    if (wsUrl) {
+      console.log(`CDP endpoint: ${wsUrl}`);
+    } else {
+      console.log(`CDP endpoint: http://127.0.0.1:${debugPort}/json/version`);
+    }
   }
 
   if (processor.opts.rerouteDir) {

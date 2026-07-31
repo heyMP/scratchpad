@@ -93,4 +93,17 @@ describe('buildLaunchOptions', () => {
     const result = buildLaunchOptions({});
     assert.ok(!result.args!.some((a: string) => a.includes('remote-debugging-port')));
   });
+
+  test('debugPort strips duplicate remote-debugging args from launchOptions', () => {
+    const result = buildLaunchOptions({
+      launchOptions: {
+        args: ['--remote-debugging-port=9222', '--remote-allow-origins=*', '--some-other-flag'],
+      },
+    }, 9333);
+    assert.deepStrictEqual(result.args, [
+      '--remote-debugging-port=9333',
+      '--remote-allow-origins=*',
+      '--some-other-flag',
+    ]);
+  });
 });

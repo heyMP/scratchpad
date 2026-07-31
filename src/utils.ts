@@ -335,6 +335,32 @@ export async function findAvailableDebugPort(preferredPort?: number): Promise<nu
   throw new Error(`No available debug port found in range ${start}-${start + 99}`);
 }
 
+export async function getCdpWebSocketUrl(
+  port: number,
+  retries = 20,
+  delayMs = 50,
+): Promise<string | undefined> {
+  const versionUrl = `http://127.0.0.1:${port}/json/version`;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(versionUrl);
+      if (response.ok) {
+        const body = await response.json() as { webSocketDebuggerUrl?: string };
+        if (body.webSocketDebuggerUrl) {
+          return body.webSocketDebuggerUrl;
+        }
+      }
+    } catch {
+      // CDP may not be listening yet.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  return undefined;
+}
+
 /**
  * Template Literal function that converts an string
  * containing ESM javascript to data URI.

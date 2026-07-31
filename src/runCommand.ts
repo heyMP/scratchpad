@@ -4,6 +4,24 @@ import { Processor } from './Processor.js';
 import { browser } from './browser.js';
 import { parseBooleanOption, pickSession } from './utils.js';
 
+export function resolveDebug(
+  cliDebug: boolean | undefined,
+  cliDebugPort: string | undefined,
+  configDebug: boolean | number | undefined,
+): boolean | number | undefined {
+  if (cliDebugPort !== undefined) {
+    const parsed = Number.parseInt(cliDebugPort, 10);
+    if (Number.isNaN(parsed)) {
+      throw new Error(`Invalid debug port: ${cliDebugPort}`);
+    }
+    return parsed;
+  }
+  if (cliDebug) {
+    return true;
+  }
+  return configDebug;
+}
+
 async function resolveSessionName(
   cliSession: string | true | undefined,
   configSession: string | true | undefined,
@@ -31,20 +49,13 @@ export const runCommand = new Command('run')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .option('--session [name]', 'use a saved browser session by name, or pick one interactively')
-  .option('--debug [port]', 'enable remote debugging (optionally specify port, default auto-picks from 9222)')
+  .option('--debug', 'enable remote debugging (auto-picks port from 9222)')
+  .option('--debug-port <port>', 'remote debugging port (implies --debug)')
   .action(async (file, options) => {
     const config = await getConfig();
     const opts = { ...config, ...options };
     const session = await resolveSessionName(opts['session'], config.session);
-
-    let debug: boolean | number | undefined;
-    const rawDebug = opts['debug'] ?? config.debug;
-    if (typeof rawDebug === 'string') {
-      const parsed = Number.parseInt(rawDebug, 10);
-      debug = Number.isNaN(parsed) ? true : parsed;
-    } else {
-      debug = rawDebug;
-    }
+    const debug = resolveDebug(options.debug, options.debugPort, config.debug);
 
     const processor = new Processor({
       // type narrow the options

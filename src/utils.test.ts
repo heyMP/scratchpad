@@ -11,6 +11,7 @@ import {
   getSessionsDir,
   isPortAvailable,
   findAvailableDebugPort,
+  getCdpWebSocketUrl,
   listSessions,
   OperationCancelledError,
   parseBooleanOption,
@@ -171,5 +172,26 @@ describe('debug port utilities', () => {
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }
+  });
+});
+
+describe('getCdpWebSocketUrl', () => {
+  test('returns webSocketDebuggerUrl from /json/version', async () => {
+    const http = await import('node:http');
+    const wsUrl = 'ws://127.0.0.1:19880/devtools/browser/test';
+    const server = http.createServer((_req, res) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ webSocketDebuggerUrl: wsUrl }));
+    });
+    await new Promise<void>((resolve) => server.listen(19880, '127.0.0.1', resolve));
+    try {
+      assert.strictEqual(await getCdpWebSocketUrl(19880, 1), wsUrl);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  test('returns undefined when CDP endpoint is unavailable', async () => {
+    assert.strictEqual(await getCdpWebSocketUrl(19881, 1, 1), undefined);
   });
 });
