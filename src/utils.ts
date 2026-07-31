@@ -1,5 +1,6 @@
 import { stat, readdir, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import net from 'node:net';
 import os from 'node:os';
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
@@ -309,6 +310,55 @@ export async function pickSessions() {
   }
 
   return pickSessionsWithReadline(sessions);
+}
+
+const DEFAULT_DEBUG_PORT = 9222;
+
+export function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+export async function findAvailableDebugPort(preferredPort?: number): Promise<number> {
+  const start = preferredPort ?? DEFAULT_DEBUG_PORT;
+  for (let port = start; port < start + 100; port++) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error(`No available debug port found in range ${start}-${start + 99}`);
+}
+
+export async function getCdpWebSocketUrl(
+  port: number,
+  retries = 20,
+  delayMs = 50,
+): Promise<string | undefined> {
+  const versionUrl = `http://127.0.0.1:${port}/json/version`;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(versionUrl);
+      if (response.ok) {
+        const body = await response.json() as { webSocketDebuggerUrl?: string };
+        if (body.webSocketDebuggerUrl) {
+          return body.webSocketDebuggerUrl;
+        }
+      }
+    } catch {
+      // CDP may not be listening yet.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  return undefined;
 }
 
 /**

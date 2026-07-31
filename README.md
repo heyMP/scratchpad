@@ -37,6 +37,8 @@ run options:
   --ts-write [boolean]   write the js output of the target ts file.
   --url [string]         specify a specific url to execute the code in.
   --session [name]       use a saved browser session by name, or pick one interactively
+  --debug                enable remote debugging (auto-picks port from 9222)
+  --debug-port <port>    remote debugging port (implies --debug)
 ```
 
 ## Config
@@ -53,6 +55,7 @@ An alternative to using the CLI flags, you can create `scratchpad.config.js`.
 | `url` | `string` | Specify a specific URL to execute the code in. |
 | `session` | `string \| true` | Use a saved browser session by name, or set to `true` to pick one interactively. |
 | `bypassCSP` | `boolean` | Bypass Content Security Policy (CSP) when running code. |
+| `debug` | `boolean \| number` | Enable CDP remote debugging. Set to `true` to auto-pick a port from 9222, or a number for a specific port. |
 | `rerouteDir` | `string` | The default directory to use for rerouting requests to local files. |
 | `launchOptions` | `LaunchOptions` | Playwright [launch options](https://playwright.dev/docs/api/class-browsertype#browser-type-launch) passed directly to `chromium.launch()`. |
 | `playwright` | `function` | Async method for altering the Playwright runtime. |
@@ -65,6 +68,25 @@ export default /** @type {import('@heymp/scratchpad/src/config').Config} */ ({
 });
 ```
 
+### Remote debugging
+
+Use the `debug` option to enable Chrome DevTools Protocol (CDP) remote debugging. Scratchpad auto-picks an available port starting from 9222 (or uses a port you specify) and prints the CDP endpoint on launch.
+
+```js
+export default ({
+  url: 'https://example.com',
+  debug: true,
+  // or debug: 9333,
+});
+```
+
+```bash
+scratchpad run --debug ./my-snippet.js
+scratchpad run --debug-port 9333 ./my-snippet.js
+```
+
+This replaces manually setting `--remote-debugging-port` and `--remote-allow-origins=*` in `launchOptions.args`.
+
 ### Launch Options
 
 The `launchOptions` field passes options directly through to Playwright's [`chromium.launch()`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch). This is useful for setting custom browser args, slow motion, or any other Playwright launch option without scratchpad needing to expose each one individually.
@@ -73,15 +95,13 @@ The `launchOptions` field passes options directly through to Playwright's [`chro
 export default ({
   url: 'https://example.com',
   launchOptions: {
-    args: [
-      '--remote-debugging-port=9222',
-      '--remote-allow-origins=*',
-    ],
+    slowMo: 100,
+    channel: 'chrome',
   },
 });
 ```
 
-The top-level `headless` and `devtools` fields continue to work as shortcuts. When both a top-level shortcut and `launchOptions` set the same value, the top-level shortcut wins. The `args` array from `launchOptions` is concatenated with any args added by other config fields (e.g. `bypassCSP`), so neither set is lost.
+The top-level `headless` and `devtools` fields continue to work as shortcuts. When both a top-level shortcut and `launchOptions` set the same value, the top-level shortcut wins. The `args` array from `launchOptions` is concatenated with any args added by other config fields (e.g. `bypassCSP`), so neither set is lost. When `debug` is enabled, any `--remote-debugging-port` or `--remote-allow-origins=*` entries in `launchOptions.args` are replaced by the auto-configured debug args.
 
 ### Playwright runtime
 

@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import fs from 'node:fs/promises';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
-import { OperationCancelledError } from './utils.js';
+import { OperationCancelledError, findAvailableDebugPort, getCdpWebSocketUrl } from './utils.js';
 import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -26,9 +26,20 @@ function readFile(...args: Parameters<typeof fs.readFile>) {
   return fs.readFile(...args);
 }
 
-export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
+function stripDebugLaunchArgs(args: string[]): string[] {
+  return args.filter(
+    (arg) => !arg.startsWith('--remote-debugging-port=') && arg !== '--remote-allow-origins=*',
+  );
+}
+
+export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): LaunchOptions {
   const bypassCSPArgs = opts.bypassCSP ? ['--disable-web-security'] : [];
   const devtoolsArgs = opts.devtools ? ['--auto-open-devtools-for-tabs'] : [];
+  const debugArgs = debugPort
+    ? [`--remote-debugging-port=${debugPort}`, '--remote-allow-origins=*']
+    : [];
+  const launchArgs = opts.launchOptions?.args ?? [];
+  const userArgs = debugPort ? stripDebugLaunchArgs(launchArgs) : launchArgs;
   const headless = opts.devtools
     ? false
     : opts.headless !== undefined
@@ -37,7 +48,7 @@ export function buildLaunchOptions(opts: ProcessorOpts): LaunchOptions {
   return {
     ...opts.launchOptions,
     ...(headless !== undefined && { headless }),
-    args: [...bypassCSPArgs, ...devtoolsArgs, ...(opts.launchOptions?.args ?? [])],
+    args: [...bypassCSPArgs, ...devtoolsArgs, ...debugArgs, ...userArgs],
   };
 }
 
@@ -97,15 +108,32 @@ function setupKeypressListener(context: BrowserContext, browser: Browser) {
 }
 
 export async function browser(processor: Processor) {
-  // Get session login session
+  // Resolve debug port if debugging is enabled
+  let debugPort: number | undefined;
+  if (processor.opts.debug) {
+    const preferredPort = typeof processor.opts.debug === 'number'
+      ? processor.opts.debug
+      : undefined;
+    debugPort = await findAvailableDebugPort(preferredPort);
+  }
+
   // Launch the browser
-  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts));
+  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts, debugPort));
   const context = await browser.newContext({
     storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,
     bypassCSP: processor.opts.bypassCSP,
   });
   const page = await context.newPage();
   const playwrightConfig = processor.opts.playwright;
+
+  if (debugPort) {
+    const wsUrl = await getCdpWebSocketUrl(debugPort);
+    if (wsUrl) {
+      console.log(`CDP endpoint: ${wsUrl}`);
+    } else {
+      console.log(`CDP endpoint: http://127.0.0.1:${debugPort}/json/version`);
+    }
+  }
 
   if (processor.opts.rerouteDir) {
     await rerouteLocal(page, processor.opts.rerouteDir);
