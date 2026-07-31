@@ -1,5 +1,36 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.24
+
+### Minor Changes
+
+- 7356914: Add a `debug` config option and `--debug` CLI flag for remote debugging.
+
+  When enabled, scratchpad auto-picks an available port starting from 9222 (or uses a port you specify) and prints the CDP WebSocket endpoint on launch. This replaces manually setting `--remote-debugging-port` and `--remote-allow-origins=*` in `launchOptions.args`.
+
+  ```js
+  export default {
+    url: "https://example.com",
+    debug: true,
+  };
+  ```
+
+  ```bash
+  npx @heymp/scratchpad@next run --debug ./my-test-file.js
+  npx @heymp/scratchpad@next run --debug-port 9333 ./my-test-file.js
+  ```
+
+### Patch Changes
+
+- 4942f1f: Delete multiple saved browser sessions at once.
+
+  Omitting session names on `session delete` now shows a checkbox picker so you can select several sessions before confirming. You can also pass multiple names on the command line:
+
+  ```bash
+  npx @heymp/scratchpad@next session delete
+  npx @heymp/scratchpad@next session delete work personal
+  ```
+
 ## 1.0.0-next.23
 
 ### Minor Changes
