@@ -11,6 +11,7 @@ import {
   listSessions,
   OperationCancelledError,
   pickSession,
+  pickSessions,
   promptForSessionName,
   parseBooleanOption,
   validateSessionName,
@@ -66,33 +67,45 @@ const listSubcommand = new Command('list')
   });
 
 const deleteSubcommand = new Command('delete')
-  .description('Delete a saved browser session.')
-  .argument('[name]', 'session name to delete (shows a picker when omitted)')
+  .description('Delete saved browser sessions.')
+  .argument('[names...]', 'session names to delete (shows a checkbox picker when omitted)')
   .option('--force', 'delete without confirmation')
-  .action(async (name, options) => {
+  .action(async (names, options) => {
     try {
-      const sessionName = name ?? await pickSession();
+      const sessionNames = names.length > 0 ? names : await pickSessions();
 
-      const error = validateSessionName(sessionName);
-      if (error) {
-        throw new Error(error);
-      }
+      for (const sessionName of sessionNames) {
+        const error = validateSessionName(sessionName);
+        if (error) {
+          throw new Error(error);
+        }
 
-      const sessionPath = getSessionPath(sessionName);
-      if (!(await exists(sessionPath))) {
-        throw new Error(`Session "${sessionName}" not found.`);
+        const sessionPath = getSessionPath(sessionName);
+        if (!(await exists(sessionPath))) {
+          throw new Error(`Session "${sessionName}" not found.`);
+        }
       }
 
       if (!options.force) {
-        const confirmed = await confirmAction(`Delete session "${sessionName}"?`);
+        const message = sessionNames.length === 1
+          ? `Delete session "${sessionNames[0]}"?`
+          : `Delete ${sessionNames.length} sessions (${sessionNames.join(', ')})?`;
+        const confirmed = await confirmAction(message);
         if (!confirmed) {
           console.log('Delete cancelled.');
           return;
         }
       }
 
-      await unlink(sessionPath);
-      console.log(`Deleted session "${sessionName}".`);
+      for (const sessionName of sessionNames) {
+        await unlink(getSessionPath(sessionName));
+      }
+
+      if (sessionNames.length === 1) {
+        console.log(`Deleted session "${sessionNames[0]}".`);
+      } else {
+        console.log(`Deleted ${sessionNames.length} sessions: ${sessionNames.join(', ')}.`);
+      }
     } catch (error) {
       if (error instanceof OperationCancelledError) {
         console.log('Delete cancelled.');
