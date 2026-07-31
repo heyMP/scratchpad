@@ -73,4 +73,24 @@ describe('buildLaunchOptions', () => {
     assert.strictEqual(result.slowMo, 100);
     assert.strictEqual(result.channel, 'chrome');
   });
+
+  test('debugPort adds remote-debugging-port and remote-allow-origins args', () => {
+    const result = buildLaunchOptions({}, 9222);
+    assert.ok(result.args!.includes('--remote-debugging-port=9222'));
+    assert.ok(result.args!.includes('--remote-allow-origins=*'));
+  });
+
+  test('debugPort args are concatenated with other args', () => {
+    const result = buildLaunchOptions({ bypassCSP: true }, 9333);
+    assert.deepStrictEqual(result.args, [
+      '--disable-web-security',
+      '--remote-debugging-port=9333',
+      '--remote-allow-origins=*',
+    ]);
+  });
+
+  test('no debug args when debugPort is undefined', () => {
+    const result = buildLaunchOptions({});
+    assert.ok(!result.args!.some((a: string) => a.includes('remote-debugging-port')));
+  });
 });

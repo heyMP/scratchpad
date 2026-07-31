@@ -9,6 +9,8 @@ import {
   generateDefaultSessionName,
   getSessionPath,
   getSessionsDir,
+  isPortAvailable,
+  findAvailableDebugPort,
   listSessions,
   OperationCancelledError,
   parseBooleanOption,
@@ -133,5 +135,41 @@ describe('confirmAction', () => {
     const result = runConfirmAction('\n');
     assert.strictEqual(result.status, 0);
     assert.ok(result.stdout.trim().endsWith('false'));
+  });
+});
+
+describe('debug port utilities', () => {
+  test('isPortAvailable returns true for an unused port', async () => {
+    const available = await isPortAvailable(19876);
+    assert.strictEqual(available, true);
+  });
+
+  test('isPortAvailable returns false for a port in use', async () => {
+    const net = await import('node:net');
+    const server = net.createServer();
+    await new Promise<void>((resolve) => server.listen(19877, '127.0.0.1', resolve));
+    try {
+      const available = await isPortAvailable(19877);
+      assert.strictEqual(available, false);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  test('findAvailableDebugPort returns the preferred port when free', async () => {
+    const port = await findAvailableDebugPort(19878);
+    assert.strictEqual(port, 19878);
+  });
+
+  test('findAvailableDebugPort skips occupied ports', async () => {
+    const net = await import('node:net');
+    const server = net.createServer();
+    await new Promise<void>((resolve) => server.listen(19879, '127.0.0.1', resolve));
+    try {
+      const port = await findAvailableDebugPort(19879);
+      assert.ok(port > 19879);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 });

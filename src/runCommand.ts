@@ -31,10 +31,21 @@ export const runCommand = new Command('run')
   .option('--ts-write [boolean]', 'write the js output of the target ts file.')
   .option('--url [string]', 'specify a specific url to execute the code in.')
   .option('--session [name]', 'use a saved browser session by name, or pick one interactively')
+  .option('--debug [port]', 'enable remote debugging (optionally specify port, default auto-picks from 9222)')
   .action(async (file, options) => {
     const config = await getConfig();
     const opts = { ...config, ...options };
     const session = await resolveSessionName(opts['session'], config.session);
+
+    let debug: boolean | number | undefined;
+    const rawDebug = opts['debug'] ?? config.debug;
+    if (typeof rawDebug === 'string') {
+      const parsed = Number.parseInt(rawDebug, 10);
+      debug = Number.isNaN(parsed) ? true : parsed;
+    } else {
+      debug = rawDebug;
+    }
+
     const processor = new Processor({
       // type narrow the options
       ...(opts['headless'] !== undefined && { headless: parseBooleanOption(opts['headless']) }),
@@ -45,6 +56,7 @@ export const runCommand = new Command('run')
       session,
       rerouteDir: opts['rerouteDir'],
       bypassCSP: opts['bypassCSP'],
+      debug,
       launchOptions: opts['launchOptions'],
       file: file
     });
