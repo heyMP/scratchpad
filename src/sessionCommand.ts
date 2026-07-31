@@ -72,7 +72,7 @@ const deleteSubcommand = new Command('delete')
   .option('--force', 'delete without confirmation')
   .action(async (names, options) => {
     try {
-      const sessionNames = names.length > 0 ? names : await pickSessions();
+      const sessionNames = names.length > 0 ? [...new Set(names)] : await pickSessions();
 
       for (const sessionName of sessionNames) {
         const error = validateSessionName(sessionName);
