@@ -463,8 +463,12 @@ in your `.ts` files:
 
 ## Development
 
+Use `yarn setup` instead of `yarn install` or `npm install`. This repo uses
+[LavaMoat allow-scripts](https://github.com/LavaMoat/LavaMoat/tree/main/packages/allow-scripts)
+to run only approved dependency lifecycle scripts.
+
 ```bash
-npm install
+yarn setup
 ```
 
 ```bash
