@@ -5,7 +5,9 @@
   "main": "src/lib/index.js",
   "module": "src/lib/index.js",
   "type": "module",
-  "bin": "bin/cli.js",
+  "bin": {
+    "scratchpad": "bin/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./src/lib/index.d.ts.js",
@@ -26,14 +28,14 @@
     "playwright": "^1.44.1"
   },
   "scripts": {
-    "setup": "yarn install && yarn allow-scripts",
+    "setup": "yarn install --ignore-scripts && yarn allow-scripts",
     "build": "tsc",
     "build:watch": "tsc -w",
     "test": "yarn build && node --test src/*.test.js",
     "release": "yarn changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.2",
+    "@changesets/cli": "^2.27.1",
     "@lavamoat/allow-scripts": "^5.0.2",
     "@lavamoat/preinstall-always-fail": "^3.0.0",
     "@types/node": "^22.1.0",
@@ -44,9 +46,8 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "esbuild#0.25.10": true,
+      "esbuild#0.25.12": true,
       "@lavamoat/preinstall-always-fail#3.0.0": false
     }
-  },
-  "packageManager": "yarn@4.18.0"
+  }
 }
