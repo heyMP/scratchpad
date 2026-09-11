@@ -19,6 +19,7 @@
     "feat-session-management",
     "feat-session-multi-delete",
     "fix-devtools-launch-option",
+    "fix-npm-consumer-preinstall",
     "honest-ads-tap",
     "large-suns-buy",
     "loud-rivers-pretend",
