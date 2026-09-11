@@ -29,7 +29,6 @@
   },
   "scripts": {
     "setup": "yarn install --ignore-scripts && yarn allow-scripts",
-    "preinstall": "echo 'Do not run yarn install directly. Use: yarn setup' && exit 1",
     "build": "tsc",
     "build:watch": "tsc -w",
     "test": "yarn build && node --test src/*.test.js",
@@ -38,6 +37,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@lavamoat/allow-scripts": "^5.0.2",
+    "@lavamoat/preinstall-always-fail": "^3.0.0",
     "@types/node": "^22.1.0",
     "typescript": "^5.5.4"
   },
@@ -46,7 +46,8 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "esbuild#0.25.10": true
+      "esbuild#0.25.10": true,
+      "@lavamoat/preinstall-always-fail#3.0.0": false
     }
   }
 }
