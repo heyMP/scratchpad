@@ -1,5 +1,11 @@
 # @heymp/scratchpad
 
+## 1.0.0-next.25
+
+### Patch Changes
+
+- 62c9c51: Fix npm install for consumers by removing the published `preinstall` guard and adopting LavaMoat's dev-only install protection.
+
 ## 1.0.0-next.24
 
 ### Minor Changes
