@@ -2,10 +2,13 @@ import playwright from 'playwright';
 import type { Browser, BrowserContext, LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
+import { existsSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs/promises';
+import { cancel, isCancel, select } from '@clack/prompts';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
-import { OperationCancelledError, findAvailableDebugPort, getCdpWebSocketUrl } from './utils.js';
+import { OperationCancelledError, confirmAction, findAvailableDebugPort, findExistingChromiumBuilds, getCdpWebSocketUrl } from './utils.js';
 import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -30,6 +33,41 @@ function stripDebugLaunchArgs(args: string[]): string[] {
   return args.filter(
     (arg) => !arg.startsWith('--remote-debugging-port=') && arg !== '--remote-allow-origins=*',
   );
+}
+
+async function ensureBrowser(): Promise<string | undefined> {
+  const expectedPath = playwright.chromium.executablePath();
+  if (existsSync(expectedPath)) return undefined;
+
+  const builds = findExistingChromiumBuilds(expectedPath);
+
+  if (builds.length > 0) {
+    const choice = await select({
+      message: 'Chromium build not found. Use an existing install or download the correct one?',
+      options: [
+        ...builds.map(b => ({
+          value: b.executablePath,
+          label: `Use existing chromium-${b.build}`,
+        })),
+        { value: '__install__', label: 'Download the correct version' },
+      ],
+    });
+    if (isCancel(choice)) {
+      cancel('Browser selection cancelled.');
+      process.exit(1);
+    }
+    if (choice !== '__install__') return choice as string;
+  } else {
+    console.log(`Required Chromium not found:\n  ${expectedPath}\n`);
+    const ok = await confirmAction('Download the correct version now?');
+    if (!ok) {
+      console.log('You can install it manually:\n\n  npx playwright install chromium\n');
+      process.exit(1);
+    }
+  }
+
+  execSync('npx playwright install chromium', { stdio: 'inherit' });
+  return undefined;
 }
 
 export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): LaunchOptions {
@@ -108,6 +146,8 @@ function setupKeypressListener(context: BrowserContext, browser: Browser) {
 }
 
 export async function browser(processor: Processor) {
+  const executablePath = await ensureBrowser();
+
   // Resolve debug port if debugging is enabled
   let debugPort: number | undefined;
   if (processor.opts.debug) {
@@ -118,7 +158,10 @@ export async function browser(processor: Processor) {
   }
 
   // Launch the browser
-  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts, debugPort));
+  const browser = await playwright['chromium'].launch({
+    ...buildLaunchOptions(processor.opts, debugPort),
+    ...(executablePath && { executablePath }),
+  });
   const context = await browser.newContext({
     storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,
     bypassCSP: processor.opts.bypassCSP,

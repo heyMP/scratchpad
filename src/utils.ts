@@ -1,5 +1,6 @@
 import { stat, readdir, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readdirSync, existsSync } from 'node:fs';
+import path, { join } from 'node:path';
 import net from 'node:net';
 import os from 'node:os';
 import * as readline from 'node:readline/promises';
@@ -376,4 +377,34 @@ export function esm(templateStrings: TemplateStringsArray, ...substitutions: any
     js += substitutions[i] + templateStrings.raw[i + 1];
   }
   return 'data:text/javascript;base64,' + btoa(js);
+}
+
+export type ChromiumBuild = { build: number; executablePath: string };
+
+/**
+ * Scans the Playwright browser cache for existing Chromium installations.
+ * Works cross-platform by splitting the expected path on `path.sep` and
+ * finding the `chromium-NNNN` segment.
+ */
+export function findExistingChromiumBuilds(expectedExecPath: string): ChromiumBuild[] {
+  const segments = expectedExecPath.split(path.sep);
+  const chromiumIdx = segments.findIndex(s => /^chromium-\d+$/.test(s));
+  if (chromiumIdx === -1) return [];
+
+  const cacheDir = segments.slice(0, chromiumIdx).join(path.sep);
+  const relTail = segments.slice(chromiumIdx + 1).join(path.sep);
+
+  try {
+    return readdirSync(cacheDir, { withFileTypes: true })
+      .filter(d => d.isDirectory() && /^chromium-\d+$/.test(d.name))
+      .map(d => {
+        const build = Number.parseInt(d.name.replace('chromium-', ''), 10);
+        const executablePath = join(cacheDir, d.name, relTail);
+        return { build, executablePath };
+      })
+      .filter(b => existsSync(b.executablePath))
+      .sort((a, b) => b.build - a.build);
+  } catch {
+    return [];
+  }
 }
