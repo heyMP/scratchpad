@@ -152,7 +152,7 @@ async function promptForSessionNameWithReadline(defaultName: string) {
   }
 }
 
-export async function promptForSessionName(defaultName: string) {
+export async function promptForSessionName(defaultName: string): Promise<string> {
   if (!stdin.isTTY) {
     return promptForSessionNameWithReadline(defaultName);
   }
@@ -168,7 +168,7 @@ export async function promptForSessionName(defaultName: string) {
     throw new OperationCancelledError();
   }
 
-  return name || defaultName;
+  return (name as string) || defaultName;
 }
 
 async function confirmActionWithReadline(message: string) {
@@ -182,7 +182,7 @@ async function confirmActionWithReadline(message: string) {
   }
 }
 
-export async function confirmAction(message: string) {
+export async function confirmAction(message: string): Promise<boolean> {
   if (!stdin.isTTY) {
     return confirmActionWithReadline(message);
   }
@@ -192,10 +192,10 @@ export async function confirmAction(message: string) {
     return false;
   }
 
-  return result;
+  return result as boolean;
 }
 
-async function pickSessionWithReadline(sessions: SessionInfo[]) {
+async function pickSessionWithReadline(sessions: SessionInfo[]): Promise<string> {
   console.log('\nAvailable sessions:');
   sessions.forEach((session, index) => {
     const saved = formatSessionSavedDate(session.savedAt);
@@ -220,7 +220,7 @@ async function pickSessionWithReadline(sessions: SessionInfo[]) {
   }
 }
 
-async function pickSessionWithClack(sessions: SessionInfo[]) {
+async function pickSessionWithClack(sessions: SessionInfo[]): Promise<string> {
   const choice = await select({
     message: 'Select a session',
     options: formatSessionOptions(sessions),
@@ -231,10 +231,10 @@ async function pickSessionWithClack(sessions: SessionInfo[]) {
     throw new OperationCancelledError();
   }
 
-  return choice;
+  return choice as string;
 }
 
-export async function pickSession() {
+export async function pickSession(): Promise<string> {
   const sessions = await listSessions();
   if (sessions.length === 0) {
     throw new Error('No saved sessions found. Run `scratchpad session login` to create one.');
@@ -247,7 +247,7 @@ export async function pickSession() {
   return pickSessionWithReadline(sessions);
 }
 
-async function pickSessionsWithReadline(sessions: SessionInfo[]) {
+async function pickSessionsWithReadline(sessions: SessionInfo[]): Promise<string[]> {
   console.log('\nAvailable sessions:');
   sessions.forEach((session, index) => {
     const saved = formatSessionSavedDate(session.savedAt);
@@ -284,7 +284,7 @@ async function pickSessionsWithReadline(sessions: SessionInfo[]) {
   }
 }
 
-async function pickSessionsWithClack(sessions: SessionInfo[]) {
+async function pickSessionsWithClack(sessions: SessionInfo[]): Promise<string[]> {
   const choices = await multiselect({
     message: 'Select sessions to delete',
     options: formatSessionOptions(sessions),
@@ -296,10 +296,10 @@ async function pickSessionsWithClack(sessions: SessionInfo[]) {
     throw new OperationCancelledError();
   }
 
-  return choices;
+  return choices as string[];
 }
 
-export async function pickSessions() {
+export async function pickSessions(): Promise<string[]> {
   const sessions = await listSessions();
   if (sessions.length === 0) {
     throw new Error('No saved sessions found. Run `scratchpad session login` to create one.');

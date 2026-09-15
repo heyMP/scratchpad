@@ -172,8 +172,10 @@ async function saveSessionFromContextWithPrompts(
     throw new OperationCancelledError();
   }
 
+  const validChoice = choice as string;
+
   let sessionName: string;
-  if (choice === CREATE_NEW_SESSION) {
+  if (validChoice === CREATE_NEW_SESSION) {
     sessionName = await prompts.promptName(await generateDefaultSessionName());
     if (await exists(getSessionPath(sessionName))) {
       const confirmed = await prompts.confirm(`Session "${sessionName}" already exists. Overwrite?`);
@@ -182,11 +184,11 @@ async function saveSessionFromContextWithPrompts(
       }
     }
   } else {
-    const confirmed = await prompts.confirm(`Overwrite session "${choice}"?`);
+    const confirmed = await prompts.confirm(`Overwrite session "${validChoice}"?`);
     if (!confirmed) {
       throw new OperationCancelledError();
     }
-    sessionName = choice;
+    sessionName = validChoice;
   }
 
   const sessionPath = getSessionPath(sessionName);
