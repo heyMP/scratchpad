@@ -2,10 +2,8 @@ import playwright from 'playwright';
 import type { Browser, BrowserContext, LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
-import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs/promises';
-import { cancel, isCancel, select } from '@clack/prompts';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
 import { OperationCancelledError, confirmAction, findAvailableDebugPort, findExistingChromiumBuilds, getCdpWebSocketUrl } from './utils.js';
@@ -35,39 +33,36 @@ function stripDebugLaunchArgs(args: string[]): string[] {
   );
 }
 
-async function ensureBrowser(): Promise<string | undefined> {
-  const expectedPath = playwright.chromium.executablePath();
-  if (existsSync(expectedPath)) return undefined;
-
-  const builds = findExistingChromiumBuilds(expectedPath);
-
-  if (builds.length > 0) {
-    const choice = await select({
-      message: 'Chromium build not found. Use an existing install or download the correct one?',
-      options: [
-        ...builds.map(b => ({
-          value: b.executablePath,
-          label: `Use existing chromium-${b.build}`,
-        })),
-        { value: '__install__', label: 'Download the correct version' },
-      ],
-    });
-    if (isCancel(choice)) {
-      cancel('Browser selection cancelled.');
-      process.exit(1);
+async function launchBrowserWithRecovery(launchOptions: LaunchOptions) {
+  try {
+    return await playwright.chromium.launch(launchOptions);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes('Executable doesn\'t exist')) {
+      throw error;
     }
-    if (choice !== '__install__') return choice as string;
-  } else {
+
+    const expectedPath = playwright.chromium.executablePath();
+    const builds = findExistingChromiumBuilds(expectedPath);
+
+    if (builds.length > 0) {
+      const best = builds[0];
+      console.log(`Using existing chromium-${best.build}`);
+      return await playwright.chromium.launch({
+        ...launchOptions,
+        executablePath: best.executablePath,
+      });
+    }
+
     console.log(`Required Chromium not found:\n  ${expectedPath}\n`);
     const ok = await confirmAction('Download the correct version now?');
     if (!ok) {
       console.log('You can install it manually:\n\n  npx playwright install chromium\n');
       process.exit(1);
     }
-  }
 
-  execSync('npx playwright install chromium', { stdio: 'inherit' });
-  return undefined;
+    execSync('npx playwright install chromium', { stdio: 'inherit' });
+    return await playwright.chromium.launch(launchOptions);
+  }
 }
 
 export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): LaunchOptions {
@@ -146,8 +141,6 @@ function setupKeypressListener(context: BrowserContext, browser: Browser) {
 }
 
 export async function browser(processor: Processor) {
-  const executablePath = await ensureBrowser();
-
   // Resolve debug port if debugging is enabled
   let debugPort: number | undefined;
   if (processor.opts.debug) {
@@ -157,11 +150,10 @@ export async function browser(processor: Processor) {
     debugPort = await findAvailableDebugPort(preferredPort);
   }
 
-  // Launch the browser
-  const browser = await playwright['chromium'].launch({
-    ...buildLaunchOptions(processor.opts, debugPort),
-    ...(executablePath && { executablePath }),
-  });
+  // Launch the browser (with recovery if Chromium is not installed)
+  const browser = await launchBrowserWithRecovery(
+    buildLaunchOptions(processor.opts, debugPort),
+  );
   const context = await browser.newContext({
     storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,
     bypassCSP: processor.opts.bypassCSP,
