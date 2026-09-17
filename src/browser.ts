@@ -2,10 +2,12 @@ import playwright from 'playwright';
 import type { Browser, BrowserContext, LaunchOptions } from 'playwright';
 import util from 'node:util';
 import { join } from 'node:path'
+import { execSync } from 'node:child_process';
 import fs from 'node:fs/promises';
+import { cancel, isCancel, log, note, select } from '@clack/prompts';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
-import { OperationCancelledError, findAvailableDebugPort, getCdpWebSocketUrl } from './utils.js';
+import { OperationCancelledError, confirmAction, findAvailableDebugPort, findExistingChromiumBuilds, getCdpWebSocketUrl } from './utils.js';
 import { rerouteLocal } from './lib/index.js';
 util.inspect.defaultOptions.maxArrayLength = null;
 util.inspect.defaultOptions.depth = null;
@@ -30,6 +32,79 @@ function stripDebugLaunchArgs(args: string[]): string[] {
   return args.filter(
     (arg) => !arg.startsWith('--remote-debugging-port=') && arg !== '--remote-allow-origins=*',
   );
+}
+
+function getBuildFromPath(execPath: string): string {
+  const match = execPath.match(/chromium-(\d+)/);
+  return match ? `chromium-${match[1]}` : 'chromium';
+}
+
+async function launchBrowserWithRecovery(launchOptions: LaunchOptions, pickBrowser?: boolean) {
+  if (pickBrowser) {
+    const expectedPath = playwright.chromium.executablePath();
+    const builds = findExistingChromiumBuilds(expectedPath);
+    if (builds.length > 0) {
+      const choice = await select({
+        message: 'Pick a Chromium version to use.',
+        options: builds.map(b => ({
+          value: b.executablePath,
+          label: `chromium-${b.build}`,
+        })),
+      });
+      if (isCancel(choice)) {
+        cancel('Browser selection cancelled.');
+        process.exit(1);
+      }
+      const chosenPath = choice as string;
+      const browser = await playwright.chromium.launch({
+        ...launchOptions,
+        executablePath: chosenPath,
+      });
+      log.info(`Browser: ${getBuildFromPath(chosenPath)}`);
+      return browser;
+    }
+  }
+
+  try {
+    const browser = await playwright.chromium.launch(launchOptions);
+    log.info(`Browser: ${getBuildFromPath(playwright.chromium.executablePath())}`);
+    return browser;
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes('Executable doesn\'t exist')) {
+      throw error;
+    }
+
+    const expectedPath = playwright.chromium.executablePath();
+    const builds = findExistingChromiumBuilds(expectedPath);
+
+    if (builds.length > 0) {
+      const best = builds[0];
+      const browser = await playwright.chromium.launch({
+        ...launchOptions,
+        executablePath: best.executablePath,
+      });
+      note(
+        `chromium-${best.build} (auto-selected)\n\nTip: Use --pick-browser to choose a different version.`,
+        'Browser',
+      );
+      return browser;
+    }
+
+    note(
+      'Required Chromium not found.\n\nTip: Use --pick-browser to choose from installed Chromium versions.',
+      'Browser',
+    );
+    const ok = await confirmAction('Download the correct version now?');
+    if (!ok) {
+      console.log('You can install it manually:\n\n  npx playwright install chromium\n');
+      process.exit(1);
+    }
+
+    execSync('npx playwright install chromium', { stdio: 'inherit' });
+    const browser = await playwright.chromium.launch(launchOptions);
+    log.info(`Browser: ${getBuildFromPath(playwright.chromium.executablePath())}`);
+    return browser;
+  }
 }
 
 export function buildLaunchOptions(opts: ProcessorOpts, debugPort?: number): LaunchOptions {
@@ -117,8 +192,11 @@ export async function browser(processor: Processor) {
     debugPort = await findAvailableDebugPort(preferredPort);
   }
 
-  // Launch the browser
-  const browser = await playwright['chromium'].launch(buildLaunchOptions(processor.opts, debugPort));
+  // Launch the browser (with recovery if Chromium is not installed)
+  const browser = await launchBrowserWithRecovery(
+    buildLaunchOptions(processor.opts, debugPort),
+    processor.opts.pickBrowser,
+  );
   const context = await browser.newContext({
     storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,
     bypassCSP: processor.opts.bypassCSP,
