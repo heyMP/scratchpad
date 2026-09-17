@@ -4,6 +4,7 @@ import util from 'node:util';
 import { join } from 'node:path'
 import { execSync } from 'node:child_process';
 import fs from 'node:fs/promises';
+import { cancel, isCancel, log, note, select } from '@clack/prompts';
 import type { Processor, ProcessorOpts } from './Processor.js';
 import { getSession, saveSessionFromContext } from './login.js';
 import { OperationCancelledError, confirmAction, findAvailableDebugPort, findExistingChromiumBuilds, getCdpWebSocketUrl } from './utils.js';
@@ -33,9 +34,41 @@ function stripDebugLaunchArgs(args: string[]): string[] {
   );
 }
 
-async function launchBrowserWithRecovery(launchOptions: LaunchOptions) {
+function getBuildFromPath(execPath: string): string {
+  const match = execPath.match(/chromium-(\d+)/);
+  return match ? `chromium-${match[1]}` : 'chromium';
+}
+
+async function launchBrowserWithRecovery(launchOptions: LaunchOptions, pickBrowser?: boolean) {
+  if (pickBrowser) {
+    const expectedPath = playwright.chromium.executablePath();
+    const builds = findExistingChromiumBuilds(expectedPath);
+    if (builds.length > 0) {
+      const choice = await select({
+        message: 'Pick a Chromium version to use.',
+        options: builds.map(b => ({
+          value: b.executablePath,
+          label: `chromium-${b.build}`,
+        })),
+      });
+      if (isCancel(choice)) {
+        cancel('Browser selection cancelled.');
+        process.exit(1);
+      }
+      const chosenPath = choice as string;
+      const browser = await playwright.chromium.launch({
+        ...launchOptions,
+        executablePath: chosenPath,
+      });
+      log.info(`Browser: ${getBuildFromPath(chosenPath)}`);
+      return browser;
+    }
+  }
+
   try {
-    return await playwright.chromium.launch(launchOptions);
+    const browser = await playwright.chromium.launch(launchOptions);
+    log.info(`Browser: ${getBuildFromPath(playwright.chromium.executablePath())}`);
+    return browser;
   } catch (error) {
     if (!(error instanceof Error) || !error.message.includes('Executable doesn\'t exist')) {
       throw error;
@@ -46,14 +79,21 @@ async function launchBrowserWithRecovery(launchOptions: LaunchOptions) {
 
     if (builds.length > 0) {
       const best = builds[0];
-      console.log(`Using existing chromium-${best.build}`);
-      return await playwright.chromium.launch({
+      const browser = await playwright.chromium.launch({
         ...launchOptions,
         executablePath: best.executablePath,
       });
+      note(
+        `chromium-${best.build} (auto-selected)\n\nTip: Use --pick-browser to choose a different version.`,
+        'Browser',
+      );
+      return browser;
     }
 
-    console.log(`Required Chromium not found:\n  ${expectedPath}\n`);
+    note(
+      'Required Chromium not found.\n\nTip: Use --pick-browser to choose from installed Chromium versions.',
+      'Browser',
+    );
     const ok = await confirmAction('Download the correct version now?');
     if (!ok) {
       console.log('You can install it manually:\n\n  npx playwright install chromium\n');
@@ -61,7 +101,9 @@ async function launchBrowserWithRecovery(launchOptions: LaunchOptions) {
     }
 
     execSync('npx playwright install chromium', { stdio: 'inherit' });
-    return await playwright.chromium.launch(launchOptions);
+    const browser = await playwright.chromium.launch(launchOptions);
+    log.info(`Browser: ${getBuildFromPath(playwright.chromium.executablePath())}`);
+    return browser;
   }
 }
 
@@ -153,6 +195,7 @@ export async function browser(processor: Processor) {
   // Launch the browser (with recovery if Chromium is not installed)
   const browser = await launchBrowserWithRecovery(
     buildLaunchOptions(processor.opts, debugPort),
+    processor.opts.pickBrowser,
   );
   const context = await browser.newContext({
     storageState: processor.opts.session ? await getSession(processor.opts.session) : undefined,

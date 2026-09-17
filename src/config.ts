@@ -19,6 +19,7 @@ export type Config = {
   rerouteDir?: string;
   bypassCSP?: boolean;
   debug?: boolean | number;
+  pickBrowser?: boolean;
   launchOptions?: LaunchOptions;
   playwright?: (page: PlaywrightConfig) => Promise<void>
 }

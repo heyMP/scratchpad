@@ -51,6 +51,7 @@ export const runCommand = new Command('run')
   .option('--session [name]', 'use a saved browser session by name, or pick one interactively')
   .option('--debug', 'enable remote debugging (auto-picks port from 9222)')
   .option('--debug-port <port>', 'remote debugging port (implies --debug)')
+  .option('--pick-browser', 'pick from installed Chromium versions if the expected one is missing')
   .action(async (file, options) => {
     const config = await getConfig();
     const opts = { ...config, ...options };
@@ -68,6 +69,7 @@ export const runCommand = new Command('run')
       rerouteDir: opts['rerouteDir'],
       bypassCSP: opts['bypassCSP'],
       debug,
+      pickBrowser: opts['pickBrowser'],
       launchOptions: opts['launchOptions'],
       file: file
     });
